@@ -1,0 +1,1426 @@
+<!DOCTYPE html><html lang="vi"><meta charset="utf-8"><title>BRD - Phương Thảo</title>
+  <style>
+  @page { size:A4; margin:16mm 14mm 17mm; }
+  * { box-sizing:border-box; } body { font-family:Arial,sans-serif; font-size:10pt; line-height:1.42; color:#202a35; margin:0; }
+  h1 { font-size:23pt; line-height:1.22; color:#203d50; padding-bottom:6mm; border-bottom:2px solid #2a6873; margin:0 0 7mm; }
+  h2 { font-size:16pt; color:#203d50; margin:0 0 5mm; break-before:page; break-after:avoid; }
+  h2:first-of-type { break-before:avoid; }
+  h3 { font-size:12pt; margin:5mm 0 3mm; break-after:avoid; }
+  h4 { font-size:11pt; break-after:avoid; }
+  p { margin:0 0 3mm; } li { margin:1mm 0; } ul { padding-left:6mm; }
+  table { border-collapse:collapse; width:100%; table-layout:fixed; margin:3mm 0 5mm; font-size:9pt; }
+  th,td { border:1px solid #bac6cd; padding:2.3mm; vertical-align:top; overflow-wrap:anywhere; }
+  th { background:#edf3f5; text-align:left; color:#203d50; font-weight:700; }
+  thead { display:table-header-group; } tr { break-inside:avoid; } tbody tr:nth-child(even) { background:#f8fafb; }
+  code { font-family:Arial,sans-serif; font-size:0.94em; color:#334c5b; }
+  .diagram { text-align:center; break-inside:avoid; margin:2mm 0 4mm; }
+  .diagram svg { width:100%; height:auto; max-height:223mm; }
+  .flow-heading { break-before:page; margin-top:0; }
+  .req-table td:first-child,.req-table th:first-child { width:16%; }
+  .req-table td:nth-child(2),.req-table th:nth-child(2) { width:47%; }
+  .req-table td:nth-child(3),.req-table th:nth-child(3) { width:18%; }
+  .req-table td:nth-child(4),.req-table th:nth-child(4) { width:19%; }
+  .rule-table td:first-child,.rule-table th:first-child { width:18%; }
+  .rule-table td:nth-child(2),.rule-table th:nth-child(2) { width:60%; }
+  .rule-table td:nth-child(3),.rule-table th:nth-child(3) { width:22%; }
+  </style><body><h1>BRD - Tích hợp Website Phương Thảo với FAST</h1>
+<h2>1. Thông tin tài liệu</h2>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Nội dung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mã tài liệu</td>
+<td>PT-BRD-001</td>
+</tr>
+<tr>
+<td>Phiên bản</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>Ngày cập nhật</td>
+<td>06/10/2026</td>
+</tr>
+<tr>
+<td>Trạng thái</td>
+<td>Draft - Chưa phê duyệt</td>
+</tr>
+<tr>
+<td>Phạm vi</td>
+<td>Tồn kho, đơn hàng, đồng bộ đơn đã được Website xác nhận thanh toán, hủy/hoàn hàng và hóa đơn điện tử</td>
+</tr>
+<tr>
+<td>Tài liệu tiếp nối</td>
+<td>SRS (đặc tả chức năng và API), UAT Checklist, User Guide</td>
+</tr>
+</tbody></table>
+<h3>1.1. Nguồn yêu cầu</h3>
+<table>
+<thead>
+<tr>
+<th>Mã nguồn</th>
+<th>Nguồn</th>
+<th>Cách sử dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SRC-001</td>
+<td>Chị Thủy</td>
+<td>Nhu cầu kinh doanh, quy hoạch tài liệu và quy ước truy vết</td>
+</tr>
+<tr>
+<td>SRC-002</td>
+<td>Chị Thủy</td>
+<td>Yêu cầu cập nhật về Chờ thanh toán, Đã thanh toán, giữ/nhả tồn và hủy/hoàn sau thanh toán</td>
+</tr>
+<tr>
+<td>SRC-003</td>
+<td>Chị Thủy</td>
+<td>Tài liệu giải pháp FAST hiện có; dùng để đối chiếu phạm vi và phát hiện khác biệt</td>
+</tr>
+</tbody></table>
+<p>BRD này ghi nhận yêu cầu mới nhất của người yêu cầu. Những giải pháp do trợ lý đề xuất trong cuộc trao đổi được ghi là định hướng hoặc nội dung cần phân tích, không mặc định là yêu cầu đã được phê duyệt. Chi tiết API, kỹ thuật đồng bộ và thiết kế xử lý lỗi được phát triển trong SRS.</p>
+<h3>1.2. Quy ước đánh mã</h3>
+<p>Mã yêu cầu có dạng <code>&lt;Module&gt;-BR-&lt;Số thứ tự&gt;</code>; mã quy tắc nghiệp vụ có dạng <code>&lt;Module&gt;-BRU-&lt;Số thứ tự&gt;</code>. Module: <code>INV</code> (tồn kho), <code>ORD</code> (đơn hàng), <code>INVH</code> (hóa đơn), <code>INT</code> (tích hợp). Mã điểm cần phân tích có dạng <code>ISS-&lt;Số thứ tự&gt;</code>.</p>
+<p>Mã được giữ ổn định khi thay đổi nội dung, không tái sử dụng mã đã hủy. SRS, test case và User Guide tham chiếu mã BRD để truy vết; quan hệ có thể là nhiều-nhiều. Các mã chức năng, API và test case được cấp khi có đặc tả tương ứng.</p>
+<h2>2. Bối cảnh và mục tiêu</h2>
+<p>Phương Thảo cần kết nối Website bán hàng với phần mềm FAST để khách hàng tự đặt hàng dựa trên tồn khả dụng, giữ hàng trong thời gian chờ thanh toán và ghi nhận giao dịch bán hàng tại FAST sau thanh toán. Hủy đơn, hoàn hàng và hóa đơn liên quan phải được quản lý xuyên suốt, bảo đảm tồn kho không bị cộng/trừ sai hoặc xử lý trùng.</p>
+<p>Mục tiêu nghiệp vụ:</p>
+<ul>
+<li>Hiển thị số lượng hàng khách còn có thể đặt dựa trên tồn thực tế từ FAST và các đơn đang giữ hàng.</li>
+<li>Kiểm soát việc đặt hàng đồng thời để tránh bán vượt tồn khả dụng.</li>
+<li>Tự động giải phóng hàng khi đơn bị hủy hoặc quá thời hạn thanh toán.</li>
+<li>Đồng bộ đơn đã thanh toán sang FAST để tạo HĐBH, trừ tồn và khởi tạo/phát hành HĐĐT MTT.</li>
+<li>Quản lý hủy/hoàn sau thanh toán, một phần hoặc toàn bộ, gắn với tồn kho, chứng từ và hóa đơn điều chỉnh giảm.</li>
+<li>Cho phép theo dõi kết quả xử lý giữa Website và FAST.</li>
+</ul>
+<h2>3. Phạm vi và bên tham gia</h2>
+<table>
+<thead>
+<tr>
+<th>Bên/hệ thống</th>
+<th>Vai trò nghiệp vụ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Khách hàng</td>
+<td>Xem tồn khả dụng, đặt hàng, yêu cầu hủy/hoàn</td>
+</tr>
+<tr>
+<td>Nhân sự Phương Thảo</td>
+<td>Theo dõi đơn, xử lý hủy/hoàn theo chính sách và kiểm tra kết quả đồng bộ</td>
+</tr>
+<tr>
+<td>Website Phương Thảo</td>
+<td>Quản lý đơn, tồn bị giữ, tồn khả dụng; sử dụng kết quả xác nhận thanh toán do Website đã xử lý để trao đổi dữ liệu với PMKT FBO</td>
+</tr>
+<tr>
+<td>PMKT FBO</td>
+<td>Quản lý tồn thực tế; xử lý HĐBH, xuất/nhập kho và nghiệp vụ hóa đơn</td>
+</tr>
+<tr>
+<td>Portal HĐĐT FAST</td>
+<td>Thực hiện nghiệp vụ HĐĐT MTT và hóa đơn điều chỉnh giảm theo liên kết với FBO</td>
+</tr>
+</tbody></table>
+<p>Trong tài liệu, PMKT chỉ hệ thống FAST tham gia tích hợp. Website không phải nguồn quản lý tồn thực tế. Phạm vi kho cấp hàng cho Website cần được xác định trong SRS; không mặc định mọi hàng ở mọi kho đều có thể bán online.</p>
+<p>Việc xác nhận đơn đã thanh toán hay chưa do Website tự xử lý bằng chức năng đã có. Kết quả này là đầu vào cho nghiệp vụ quản lý tồn và đồng bộ đơn sang FBO. Dự án sử dụng kết quả xác nhận có sẵn; xây dựng hoặc thay đổi cơ chế thanh toán, xác thực giao dịch tiền và thực hiện hoàn tiền nằm ngoài phạm vi BRD/SRS này.</p>
+<p>Phạm vi bao gồm:</p>
+<ul>
+<li>Đồng bộ tồn thực tế</li>
+<li>Tính tồn khả dụng</li>
+<li>Giữ hàng khi đặt đơn</li>
+<li>Thời hạn thanh toán</li>
+<li>Xử lý đơn đã thanh toán</li>
+<li>Hủy trước thanh toán</li>
+<li>Hủy/hoàn sau thanh toán </li>
+<li>Thông tin hóa đơn</li>
+</ul>
+<h2>4. Khái niệm nghiệp vụ</h2>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Định nghĩa</th>
+<th>Hệ thống chịu trách nhiệm</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tồn thực tế</td>
+<td>Số lượng tồn do FAST quản lý và cung cấp, trong phạm vi kho cấp hàng cho Website</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Tồn bị giữ</td>
+<td>Tổng số lượng hàng trên các đơn Chờ thanh toán và Đã thanh toán, tính theo từng mặt hàng và phạm vi kho tương ứng</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Tồn khả dụng</td>
+<td>Tồn thực tế nhận từ FAST trừ tồn bị giữ</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Chờ thanh toán</td>
+<td>Đơn đã được tạo và đang giữ hàng trong thời hạn cho phép</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Đã thanh toán</td>
+<td>Website đã xác nhận khách trả tiền, nhưng chưa xác nhận hoàn tất ghi nhận bán và cập nhật tồn từ FBO; đơn tiếp tục giữ hàng</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Đã xuất HĐ</td>
+<td>Website đã xác nhận khách trả tiền, FBO đã tạo HĐBH và trừ tồn thành công; Website đã cập nhật tồn và giải phóng lượng giữ tương ứng.</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>HĐBH</td>
+<td>Hóa đơn bán hàng/chứng từ bán hàng tại FAST</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>HĐĐT MTT</td>
+<td>Hóa đơn điện tử khởi tạo từ máy tính tiền</td>
+<td>FBO và Portal HĐĐT</td>
+</tr>
+<tr>
+<td>Hủy trước thanh toán</td>
+<td>Kết thúc đơn chưa thanh toán và giải phóng tồn bị giữ</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Hủy/hoàn sau thanh toán</td>
+<td>Xử lý đảo/điều chỉnh giao dịch đã bán theo số lượng yêu cầu hủy/hoàn</td>
+<td>Website phối hợp FBO</td>
+</tr>
+</tbody></table>
+<p>Kết quả xác nhận thanh toán có sẵn của Website được sử dụng độc lập với kết quả xử lý tại FBO. Khi Website đã xác nhận đơn đang Chờ thanh toán được thanh toán thành công, đơn chuyển sang Đã thanh toán để bắt đầu đồng bộ FBO. Đơn giữ nguyên lượng hàng đang giữ, không còn chịu thời hạn thanh toán T và không được tự động hủy/nhả tồn vì FBO chậm xử lý hoặc đồng bộ thất bại.</p>
+<p>Chỉ chuyển sang Đã xuất HĐ khi FBO xác nhận tạo HĐBH và trừ tồn thành công, đồng thời Website hoàn tất cập nhật tồn và giải phóng lượng giữ tương ứng. Việc FBO mới nhận yêu cầu chưa đủ để coi đồng bộ thành công. Kết quả phát hành HĐĐT được theo dõi riêng; lỗi hóa đơn không làm đơn quay lại Chờ thanh toán hoặc giữ lại lượng hàng đã ghi nhận bán.</p>
+<h2>5. Danh mục yêu cầu kinh doanh</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Yêu cầu và kết quả mong muốn</th>
+<th>Trách nhiệm chính</th>
+<th>Nguồn / cơ sở</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INV-BR-001</td>
+<td>Website nhận tồn thực tế từ FAST để làm cơ sở bán hàng; các thay đổi tồn thuộc phạm vi bán online phải được cập nhật về Website</td>
+<td>FAST cung cấp; Website tiếp nhận</td>
+<td>SRC-001, SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>INV-BR-002</td>
+<td>Website tính và hiển thị tồn khả dụng; cập nhật ngay khi tồn thực tế nhận được hoặc tồn bị giữ thay đổi</td>
+<td>Website</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>ORD-BR-001</td>
+<td>Khách tự đặt đơn trên Website; chỉ tạo đơn và giữ hàng khi đủ tồn khả dụng, kể cả khi nhiều khách đặt đồng thời</td>
+<td>Website</td>
+<td>SRC-002 / yêu cầu và phân tích bổ sung</td>
+</tr>
+<tr>
+<td>ORD-BR-002</td>
+<td>Đơn Chờ thanh toán giữ hàng tối đa trong thời hạn quy định; chưa thanh toán khi hết hạn thì tự động hủy và nhả tồn</td>
+<td>Website</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>ORD-BR-003</td>
+<td>Khi Website đã xác nhận đơn được thanh toán bằng chức năng có sẵn, Website gửi đơn sang FAST; FAST tạo HĐBH, trừ tồn thực tế và trả tồn mới để Website cập nhật đơn, giải phóng phần tồn bị giữ tương ứng</td>
+<td>Website và FAST</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>INVH-BR-001</td>
+<td>FAST khởi tạo/phát hành HĐĐT MTT cho giao dịch bán và trả thông tin hóa đơn về Website</td>
+<td>FAST và Portal HĐĐT</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>ORD-BR-004</td>
+<td>Đơn Chờ thanh toán bị hủy trước thanh toán được nhả tồn trên Website; không phát sinh nghiệp vụ đảo tồn thực tế tại FAST</td>
+<td>Website</td>
+<td>SRC-001, SRC-002 / yêu cầu và định hướng</td>
+</tr>
+<tr>
+<td>ORD-BR-005</td>
+<td>Hỗ trợ yêu cầu hủy/hoàn sau thanh toán, một phần hoặc toàn bộ, theo cùng cơ chế xử lý dựa trên số lượng</td>
+<td>Website tiếp nhận; FAST xử lý giao dịch</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>INV-BR-003</td>
+<td>Website cập nhật tồn sau hoàn theo kết quả FAST; hàng không đủ điều kiện bán không được cộng vào tồn khả dụng để bán tiếp</td>
+<td>FAST xác nhận; Website cập nhật</td>
+<td>SRC-002 / định hướng nghiệp vụ</td>
+</tr>
+<tr>
+<td>INVH-BR-002</td>
+<td>Khi xử lý hoàn giao dịch đã có HĐĐT gốc, PMKT lập HĐĐT điều chỉnh giảm tham chiếu hóa đơn gốc và trả thông tin về Website</td>
+<td>FAST và Portal HĐĐT</td>
+<td>SRC-002 / yêu cầu</td>
+</tr>
+<tr>
+<td>ORD-BR-006</td>
+<td>Ghi nhận số lượng, giá trị hàng đã hoàn và kết quả xử lý chứng từ từ FBO; giữ lịch sử đơn gốc để theo dõi hoàn một phần hoặc nhiều lần</td>
+<td>Website phối hợp FBO</td>
+<td>SRC-002 / định hướng nghiệp vụ; phạm vi cập nhật 06/10/2026</td>
+</tr>
+<tr>
+<td>INT-BR-001</td>
+<td>Một giao dịch bán hoặc hủy/hoàn không được tạo chứng từ, thay đổi tồn hay phát hành hóa đơn trùng khi gửi lại yêu cầu</td>
+<td>Website và FAST</td>
+<td>SRC-002 / phân tích bổ sung</td>
+</tr>
+<tr>
+<td>INT-BR-002</td>
+<td>Theo dõi được kết quả xử lý đơn, tồn và hóa đơn; giao dịch chưa hoàn tất cần được nhận diện để xử lý tiếp</td>
+<td>Website và FAST</td>
+<td>SRC-002 / phân tích bổ sung</td>
+</tr>
+<tr>
+<td>ORD-BR-007</td>
+<td>Phân biệt đơn đã trả tiền nhưng chờ đồng bộ FBO với đơn đã trả tiền và đồng bộ thành công; bảo vệ hàng, ghi nhận lỗi và cho phép xử lý tiếp mà không yêu cầu khách thanh toán lại</td>
+<td>Website phối hợp FBO</td>
+<td>SRC-001 / yêu cầu cập nhật 06/10/2026</td>
+</tr>
+</tbody></table>
+<h2>6. Quy tắc nghiệp vụ</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Quy tắc</th>
+<th>Yêu cầu liên quan</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INV-BRU-001</td>
+<td>Tồn khả dụng = Tồn thực tế từ FAST - Tồn bị giữ; các đại lượng phải cùng mặt hàng, đơn vị tính và phạm vi kho</td>
+<td>INV-BR-001, INV-BR-002</td>
+</tr>
+<tr>
+<td>INV-BRU-002</td>
+<td>Tồn bị giữ = tổng số lượng mặt hàng trên các đơn Chờ thanh toán + tổng số lượng mặt hàng trên các đơn Đã thanh toán</td>
+<td>INV-BR-002, ORD-BR-001, ORD-BR-007</td>
+</tr>
+<tr>
+<td>ORD-BRU-001</td>
+<td>Chỉ chấp nhận đặt hàng khi tồn khả dụng đủ cho từng mặt hàng của đơn; các đơn đồng thời không được cùng sử dụng vượt lượng khả dụng</td>
+<td>ORD-BR-001</td>
+</tr>
+<tr>
+<td>ORD-BRU-002</td>
+<td>Đơn Chờ thanh toán giữ hàng tối đa T phút; giá trị T chưa được chốt. Quá hạn chưa thanh toán thì tự động hủy và giải phóng tồn</td>
+<td>ORD-BR-002</td>
+</tr>
+<tr>
+<td>ORD-BRU-003</td>
+<td>Hủy trước thanh toán chỉ làm giảm tồn bị giữ; tồn thực tế không thay đổi do thao tác hủy này</td>
+<td>ORD-BR-004</td>
+</tr>
+<tr>
+<td>INV-BRU-003</td>
+<td>Khi FAST ghi nhận bán Q sản phẩm và Website giải phóng Q sản phẩm đang giữ, tồn thực tế và tồn bị giữ cùng giảm Q. Tồn khả dụng không đổi nếu không có biến động khác</td>
+<td>ORD-BR-003, INV-BR-002</td>
+</tr>
+<tr>
+<td>INV-BRU-004</td>
+<td>Website không tự điều chỉnh tồn thực tế theo trạng thái đơn; tồn thực tế được cập nhật từ kết quả FAST</td>
+<td>INV-BR-001, INV-BR-003</td>
+</tr>
+<tr>
+<td>ORD-BRU-004</td>
+<td>Tổng số lượng hoàn thành công của mỗi dòng hàng không vượt số lượng đã bán; phải kiểm soát cả yêu cầu hoàn đang xử lý để tránh nhận vượt số lượng còn được hoàn</td>
+<td>ORD-BR-005, ORD-BR-006</td>
+</tr>
+<tr>
+<td>INV-BRU-005</td>
+<td>Hoàn tiền không mặc định làm tăng tồn bán được. Chỉ hàng được FAST xác nhận quay lại phạm vi kho bán online mới làm tăng tồn thực tế dùng cho Website</td>
+<td>INV-BR-003</td>
+</tr>
+<tr>
+<td>INVH-BRU-001</td>
+<td>Hóa đơn điều chỉnh giảm phải liên kết với hóa đơn gốc và nghiệp vụ hủy/hoàn tương ứng</td>
+<td>INVH-BR-002</td>
+</tr>
+<tr>
+<td>INT-BRU-001</td>
+<td>Gửi lại cùng giao dịch không được làm thay đổi tồn, tạo chứng từ hoặc hóa đơn thêm lần nữa</td>
+<td>INT-BR-001</td>
+</tr>
+<tr>
+<td>ORD-BRU-005</td>
+<td>Giữ lịch sử giao dịch gốc, các lần hoàn và kết quả xử lý chứng từ từ FBO; hoàn một phần không được làm mất thông tin phần hàng còn lại</td>
+<td>ORD-BR-006</td>
+</tr>
+<tr>
+<td>ORD-BRU-006</td>
+<td>Khi xác nhận thanh toán thành công, chuyển đơn Chờ thanh toán sang Đã thanh toán; không giảm tồn bị giữ và không áp dụng tự hủy theo thời hạn thanh toán T</td>
+<td>ORD-BR-002, ORD-BR-007</td>
+</tr>
+<tr>
+<td>ORD-BRU-007</td>
+<td>Chỉ chuyển đơn sang Đã xuất HĐ sau khi xác nhận FBO tạo HĐBH, trừ tồn thành công và Website hoàn tất cập nhật tồn, giải phóng lượng giữ tương ứng</td>
+<td>ORD-BR-003, ORD-BR-007</td>
+</tr>
+<tr>
+<td>INT-BRU-002</td>
+<td>Khi đồng bộ lỗi, mất phản hồi hoặc chưa rõ kết quả, đơn vẫn Đã thanh toán; lưu kết quả/lỗi, tiếp tục kiểm tra hoặc gửi lại cùng giao dịch và cho phép nhân sự xử lý. Không yêu cầu trả tiền lại hoặc tự nhả tồn</td>
+<td>ORD-BR-007, INT-BR-001, INT-BR-002</td>
+</tr>
+<tr>
+<td>INVH-BRU-002</td>
+<td>Theo dõi kết quả HĐĐT độc lập với đồng bộ HĐBH/tồn. Nếu ghi nhận bán và cập nhật tồn đã hoàn tất nhưng HĐĐT lỗi, giữ trạng thái Đã xuất HĐ và xử lý tiếp riêng phần hóa đơn</td>
+<td>INVH-BR-001, ORD-BR-007, INT-BR-001</td>
+</tr>
+</tbody></table>
+<h2>7. Luồng nghiệp vụ và định hướng giải pháp</h2>
+<h3>7.1. Xem tồn và đặt hàng</h3>
+<p>Liên quan: <code>INV-BR-001</code>, <code>INV-BR-002</code>, <code>ORD-BR-001</code>.</p>
+<div class="diagram">
+
+<!-- Generated by graphviz version 14.1.3 (20260303.0454)
+ -->
+<!-- Pages: 1 -->
+<p><svg width="486pt" height="441pt"
+ viewBox="0.00 0.00 486.00 441.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(8.64 432.68)"></p>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<path fill="#ffffff" stroke="#485666" d="M236.69,-424.04C236.69,-424.04 90.9,-424.04 90.9,-424.04 84.9,-424.04 78.9,-418.04 78.9,-412.04 78.9,-412.04 78.9,-397.16 78.9,-397.16 78.9,-391.16 84.9,-385.16 90.9,-385.16 90.9,-385.16 236.69,-385.16 236.69,-385.16 242.69,-385.16 248.69,-391.16 248.69,-397.16 248.69,-397.16 248.69,-412.04 248.69,-412.04 248.69,-418.04 242.69,-424.04 236.69,-424.04"/>
+<text xml:space="preserve" text-anchor="start" x="86.1" y="-407" font-family="Arial" font-size="12.00">FBO: Cung cấp tồn thực tế</text>
+<text xml:space="preserve" text-anchor="start" x="96.43" y="-392.6" font-family="Arial" font-size="12.00">trong phạm vi bán online</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<path fill="#ffffff" stroke="#485666" d="M273.38,-368.16C273.38,-368.16 54.21,-368.16 54.21,-368.16 48.21,-368.16 42.21,-362.16 42.21,-356.16 42.21,-356.16 42.21,-341.28 42.21,-341.28 42.21,-335.28 48.21,-329.28 54.21,-329.28 54.21,-329.28 273.38,-329.28 273.38,-329.28 279.38,-329.28 285.38,-335.28 285.38,-341.28 285.38,-341.28 285.38,-356.16 285.38,-356.16 285.38,-362.16 279.38,-368.16 273.38,-368.16"/>
+<text xml:space="preserve" text-anchor="start" x="49.41" y="-351.12" font-family="Arial" font-size="12.00">Website: Tính và hiển thị tồn khả dụng</text>
+<text xml:space="preserve" text-anchor="start" x="84.94" y="-336.72" font-family="Arial" font-size="12.00">= Tồn thực tế &#45; Tồn bị giữ</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M163.8,-384.76C163.8,-382.06 163.8,-379.25 163.8,-376.45"/>
+<polygon fill="#657384" stroke="#657384" points="166.07,-376.66 163.8,-370.16 161.52,-376.66 166.07,-376.66"/>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<path fill="#ffffff" stroke="#485666" d="M254.72,-312.28C254.72,-312.28 72.88,-312.28 72.88,-312.28 66.88,-312.28 60.88,-306.28 60.88,-300.28 60.88,-300.28 60.88,-285.4 60.88,-285.4 60.88,-279.4 66.88,-273.4 72.88,-273.4 72.88,-273.4 254.72,-273.4 254.72,-273.4 260.72,-273.4 266.72,-279.4 266.72,-285.4 266.72,-285.4 266.72,-300.28 266.72,-300.28 266.72,-306.28 260.72,-312.28 254.72,-312.28"/>
+<text xml:space="preserve" text-anchor="start" x="68.08" y="-295.24" font-family="Arial" font-size="12.00">Khách hàng: Chọn hàng, số lượng</text>
+<text xml:space="preserve" text-anchor="start" x="95.1" y="-280.84" font-family="Arial" font-size="12.00">và gửi yêu cầu đặt hàng</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#657384" d="M163.8,-328.88C163.8,-326.18 163.8,-323.37 163.8,-320.57"/>
+<polygon fill="#657384" stroke="#657384" points="166.07,-320.78 163.8,-314.28 161.52,-320.78 166.07,-320.78"/>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<polygon fill="#eef2f5" stroke="#485666" points="163.8,-256.4 0,-217.52 163.8,-178.64 327.59,-217.52 163.8,-256.4"/>
+<text xml:space="preserve" text-anchor="start" x="89.1" y="-219.92" font-family="Arial" font-size="12.00">Website: Đủ tồn khả dụng</text>
+<text xml:space="preserve" text-anchor="start" x="102.77" y="-205.52" font-family="Arial" font-size="12.00">cho tất cả mặt hàng?</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>C&#45;&gt;D</title>
+<path fill="none" stroke="#657384" d="M163.8,-272.96C163.8,-270.3 163.8,-267.47 163.8,-264.56"/>
+<polygon fill="#657384" stroke="#657384" points="166.07,-264.74 163.8,-258.24 161.52,-264.74 166.07,-264.74"/>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<path fill="#ffffff" stroke="#485666" d="M229.71,-150.64C229.71,-150.64 45.88,-150.64 45.88,-150.64 39.88,-150.64 33.88,-144.64 33.88,-138.64 33.88,-138.64 33.88,-123.76 33.88,-123.76 33.88,-117.76 39.88,-111.76 45.88,-111.76 45.88,-111.76 229.71,-111.76 229.71,-111.76 235.71,-111.76 241.71,-117.76 241.71,-123.76 241.71,-123.76 241.71,-138.64 241.71,-138.64 241.71,-144.64 235.71,-150.64 229.71,-150.64"/>
+<text xml:space="preserve" text-anchor="start" x="41.08" y="-133.6" font-family="Arial" font-size="12.00">Website: Thông báo không đủ hàng</text>
+<text xml:space="preserve" text-anchor="start" x="54.42" y="-119.2" font-family="Arial" font-size="12.00">Không tạo đơn, không giữ tồn</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#657384" d="M152.77,-180.76C150.45,-173.25 148.05,-165.45 145.86,-158.37"/>
+<polygon fill="#657384" stroke="#657384" points="148.13,-157.99 144.04,-152.45 143.78,-159.33 148.13,-157.99"/>
+<text xml:space="preserve" text-anchor="middle" x="163.7" y="-161.64" font-family="Arial" font-size="10.00">Không</text>
+</g>
+<!-- F -->
+<g id="node6" class="node">
+<title>F</title>
+<path fill="#ffffff" stroke="#485666" d="M456.37,-150.64C456.37,-150.64 271.22,-150.64 271.22,-150.64 265.22,-150.64 259.22,-144.64 259.22,-138.64 259.22,-138.64 259.22,-123.76 259.22,-123.76 259.22,-117.76 265.22,-111.76 271.22,-111.76 271.22,-111.76 456.37,-111.76 456.37,-111.76 462.37,-111.76 468.37,-117.76 468.37,-123.76 468.37,-123.76 468.37,-138.64 468.37,-138.64 468.37,-144.64 462.37,-150.64 456.37,-150.64"/>
+<text xml:space="preserve" text-anchor="start" x="270.75" y="-133.6" font-family="Arial" font-size="12.00">Website: Tạo đơn Chờ thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="266.42" y="-119.2" font-family="Arial" font-size="12.00">Tính số lượng đơn vào tồn bị giữ</text>
+</g>
+<!-- D&#45;&gt;F -->
+<g id="edge5" class="edge">
+<title>D&#45;&gt;F</title>
+<path fill="none" stroke="#657384" d="M221.91,-192.02C250.29,-180.06 284.15,-165.78 311.68,-154.17"/>
+<polygon fill="#657384" stroke="#657384" points="312.4,-156.34 317.5,-151.72 310.63,-152.15 312.4,-156.34"/>
+<text xml:space="preserve" text-anchor="middle" x="305.49" y="-161.64" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- G -->
+<g id="node7" class="node">
+<title>G</title>
+<path fill="#ffffff" stroke="#485666" d="M448.37,-94.76C448.37,-94.76 279.23,-94.76 279.23,-94.76 273.23,-94.76 267.23,-88.76 267.23,-82.76 267.23,-82.76 267.23,-67.88 267.23,-67.88 267.23,-61.88 273.23,-55.88 279.23,-55.88 279.23,-55.88 448.37,-55.88 448.37,-55.88 454.37,-55.88 460.37,-61.88 460.37,-67.88 460.37,-67.88 460.37,-82.76 460.37,-82.76 460.37,-88.76 454.37,-94.76 448.37,-94.76"/>
+<text xml:space="preserve" text-anchor="start" x="274.43" y="-77.72" font-family="Arial" font-size="12.00">Website: Tính lại tồn khả dụng</text>
+<text xml:space="preserve" text-anchor="start" x="284.09" y="-63.32" font-family="Arial" font-size="12.00">cho các khách hàng tiếp theo</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g id="edge6" class="edge">
+<title>F&#45;&gt;G</title>
+<path fill="none" stroke="#657384" d="M363.8,-111.36C363.8,-108.66 363.8,-105.85 363.8,-103.05"/>
+<polygon fill="#657384" stroke="#657384" points="366.07,-103.26 363.8,-96.76 361.52,-103.26 366.07,-103.26"/>
+</g>
+<!-- H -->
+<g id="node8" class="node">
+<title>H</title>
+<path fill="#ffffff" stroke="#485666" d="M437.04,-38.88C437.04,-38.88 290.55,-38.88 290.55,-38.88 284.55,-38.88 278.55,-32.88 278.55,-26.88 278.55,-26.88 278.55,-12 278.55,-12 278.55,-6 284.55,0 290.55,0 290.55,0 437.04,0 437.04,0 443.04,0 449.04,-6 449.04,-12 449.04,-12 449.04,-26.88 449.04,-26.88 449.04,-32.88 443.04,-38.88 437.04,-38.88"/>
+<text xml:space="preserve" text-anchor="start" x="285.75" y="-21.84" font-family="Arial" font-size="12.00">Theo dõi đơn chờ thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="309.09" y="-7.44" font-family="Arial" font-size="12.00">Luồng 7.2 hoặc 7.3</text>
+</g>
+<!-- G&#45;&gt;H -->
+<g id="edge7" class="edge">
+<title>G&#45;&gt;H</title>
+<path fill="none" stroke="#657384" d="M363.8,-55.48C363.8,-52.78 363.8,-49.97 363.8,-47.17"/>
+<polygon fill="#657384" stroke="#657384" points="366.07,-47.38 363.8,-40.88 361.52,-47.38 366.07,-47.38"/>
+</g>
+</g>
+</svg>
+</div>
+
+
+<p>Việc kiểm tra tồn, tạo đơn và giữ hàng phải bảo đảm các đơn đặt đồng thời không sử dụng vượt tồn khả dụng.</p>
+<p>FAST tiếp tục cung cấp thay đổi tồn ngoài luồng đơn Website, như bán tại cửa hàng hoặc điều chỉnh kho. Cơ chế và thời gian đồng bộ được đặc tả trong SRS.</p>
+<h3>7.2. Hết hạn hoặc hủy trước thanh toán</h3>
+<p>Liên quan: <code>ORD-BR-002</code>, <code>ORD-BR-004</code>.</p>
+<div class="diagram">
+
+<!-- Generated by graphviz version 14.1.3 (20260303.0454)
+ -->
+<!-- Pages: 1 -->
+<p><svg width="786pt" height="537pt"
+ viewBox="0.00 0.00 786.00 537.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(8.64 528.8)"></p>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<path fill="#ffffff" stroke="#485666" d="M246.06,-520.16C246.06,-520.16 146.93,-520.16 146.93,-520.16 140.93,-520.16 134.93,-514.16 134.93,-508.16 134.93,-508.16 134.93,-496.16 134.93,-496.16 134.93,-490.16 140.93,-484.16 146.93,-484.16 146.93,-484.16 246.06,-484.16 246.06,-484.16 252.06,-484.16 258.06,-490.16 258.06,-496.16 258.06,-496.16 258.06,-508.16 258.06,-508.16 258.06,-514.16 252.06,-520.16 246.06,-520.16"/>
+<text xml:space="preserve" text-anchor="start" x="142.13" y="-497.36" font-family="Arial" font-size="12.00">Đơn Chờ thanh toán</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<polygon fill="#eef2f5" stroke="#485666" points="196.5,-467.16 0,-428.28 196.5,-389.4 393,-428.28 196.5,-467.16"/>
+<text xml:space="preserve" text-anchor="start" x="105.45" y="-430.68" font-family="Arial" font-size="12.00">Website đã xác nhận thanh toán?</text>
+<text xml:space="preserve" text-anchor="start" x="125.13" y="-416.28" font-family="Arial" font-size="12.00">Sử dụng kết quả có sẵn</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M196.5,-483.76C196.5,-481.11 196.5,-478.28 196.5,-475.35"/>
+<polygon fill="#657384" stroke="#657384" points="198.77,-475.43 196.5,-468.93 194.22,-475.43 198.77,-475.43"/>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<path fill="#ffffff" stroke="#485666" d="M257.41,-361.4C257.41,-361.4 99.59,-361.4 99.59,-361.4 93.59,-361.4 87.59,-355.4 87.59,-349.4 87.59,-349.4 87.59,-334.52 87.59,-334.52 87.59,-328.52 93.59,-322.52 99.59,-322.52 99.59,-322.52 257.41,-322.52 257.41,-322.52 263.41,-322.52 269.41,-328.52 269.41,-334.52 269.41,-334.52 269.41,-349.4 269.41,-349.4 269.41,-355.4 263.41,-361.4 257.41,-361.4"/>
+<text xml:space="preserve" text-anchor="start" x="113.46" y="-344.36" font-family="Arial" font-size="12.00">Chuyển sang luồng 7.3</text>
+<text xml:space="preserve" text-anchor="start" x="94.79" y="-329.96" font-family="Arial" font-size="12.00">Không tự hủy theo thời hạn T</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#657384" d="M188.65,-390.54C187.13,-383.4 185.56,-376.04 184.12,-369.31"/>
+<polygon fill="#657384" stroke="#657384" points="186.41,-369.11 182.83,-363.23 181.96,-370.06 186.41,-369.11"/>
+<text xml:space="preserve" text-anchor="middle" x="192.81" y="-372.4" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<polygon fill="#eef2f5" stroke="#485666" points="412.5,-359.96 287.33,-341.96 412.5,-323.96 537.67,-341.96 412.5,-359.96"/>
+<text xml:space="preserve" text-anchor="start" x="354.8" y="-337.16" font-family="Arial" font-size="12.00">Khách yêu cầu hủy?</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>B&#45;&gt;D</title>
+<path fill="none" stroke="#657384" d="M261.6,-401.87C297.71,-387.77 341.46,-370.69 372.53,-358.56"/>
+<polygon fill="#657384" stroke="#657384" points="373.11,-360.78 378.34,-356.29 371.46,-356.54 373.11,-360.78"/>
+<text xml:space="preserve" text-anchor="middle" x="354.58" y="-372.4" font-family="Arial" font-size="10.00">Chưa</text>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<path fill="#ffffff" stroke="#485666" d="M450.4,-250.52C450.4,-250.52 284.59,-250.52 284.59,-250.52 278.59,-250.52 272.59,-244.52 272.59,-238.52 272.59,-238.52 272.59,-226.52 272.59,-226.52 272.59,-220.52 278.59,-214.52 284.59,-214.52 284.59,-214.52 450.4,-214.52 450.4,-214.52 456.4,-214.52 462.4,-220.52 462.4,-226.52 462.4,-226.52 462.4,-238.52 462.4,-238.52 462.4,-244.52 456.4,-250.52 450.4,-250.52"/>
+<text xml:space="preserve" text-anchor="start" x="279.79" y="-227.72" font-family="Arial" font-size="12.00">Website: Chuyển đơn sang Hủy</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#657384" d="M402.5,-325.05C397.27,-316.27 391.02,-305.05 386.5,-294.52 381.51,-282.93 377.21,-269.6 373.96,-258.36"/>
+<polygon fill="#657384" stroke="#657384" points="376.24,-258.06 372.29,-252.41 371.86,-259.29 376.24,-258.06"/>
+<text xml:space="preserve" text-anchor="middle" x="402.62" y="-305.52" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- F -->
+<g id="node6" class="node">
+<title>F</title>
+<polygon fill="#eef2f5" stroke="#485666" points="512.5,-294.52 395.7,-276.52 512.5,-258.52 629.3,-276.52 512.5,-294.52"/>
+<text xml:space="preserve" text-anchor="start" x="459.14" y="-271.72" font-family="Arial" font-size="12.00">Đã hết thời hạn T?</text>
+</g>
+<!-- D&#45;&gt;F -->
+<g id="edge5" class="edge">
+<title>D&#45;&gt;F</title>
+<path fill="none" stroke="#657384" d="M434.69,-326.88C449.19,-317.68 468.27,-305.58 483.9,-295.66"/>
+<polygon fill="#657384" stroke="#657384" points="484.82,-297.77 489.09,-292.37 482.38,-293.93 484.82,-297.77"/>
+<text xml:space="preserve" text-anchor="middle" x="485.91" y="-305.52" font-family="Arial" font-size="10.00">Không</text>
+</g>
+<!-- I -->
+<g id="node9" class="node">
+<title>I</title>
+<path fill="#ffffff" stroke="#485666" d="M455.06,-150.64C455.06,-150.64 309.93,-150.64 309.93,-150.64 303.93,-150.64 297.93,-144.64 297.93,-138.64 297.93,-138.64 297.93,-123.76 297.93,-123.76 297.93,-117.76 303.93,-111.76 309.93,-111.76 309.93,-111.76 455.06,-111.76 455.06,-111.76 461.06,-111.76 467.06,-117.76 467.06,-123.76 467.06,-123.76 467.06,-138.64 467.06,-138.64 467.06,-144.64 461.06,-150.64 455.06,-150.64"/>
+<text xml:space="preserve" text-anchor="start" x="305.13" y="-133.6" font-family="Arial" font-size="12.00">Website: Loại số lượng đơn</text>
+<text xml:space="preserve" text-anchor="start" x="336.81" y="-119.2" font-family="Arial" font-size="12.00">khỏi tồn bị giữ</text>
+</g>
+<!-- E&#45;&gt;I -->
+<g id="edge8" class="edge">
+<title>E&#45;&gt;I</title>
+<path fill="none" stroke="#657384" d="M370.11,-214.22C372.43,-198.89 375.84,-176.28 378.5,-158.68"/>
+<polygon fill="#657384" stroke="#657384" points="380.71,-159.25 379.43,-152.49 376.21,-158.57 380.71,-159.25"/>
+</g>
+<!-- G -->
+<g id="node7" class="node">
+<title>G</title>
+<path fill="#ffffff" stroke="#485666" d="M554.73,-206.52C554.73,-206.52 412.27,-206.52 412.27,-206.52 406.27,-206.52 400.27,-200.52 400.27,-194.52 400.27,-194.52 400.27,-179.64 400.27,-179.64 400.27,-173.64 406.27,-167.64 412.27,-167.64 412.27,-167.64 554.73,-167.64 554.73,-167.64 560.73,-167.64 566.73,-173.64 566.73,-179.64 566.73,-179.64 566.73,-194.52 566.73,-194.52 566.73,-200.52 560.73,-206.52 554.73,-206.52"/>
+<text xml:space="preserve" text-anchor="start" x="407.47" y="-189.48" font-family="Arial" font-size="12.00">Website: Tiếp tục giữ hàng</text>
+<text xml:space="preserve" text-anchor="start" x="442.48" y="-175.08" font-family="Arial" font-size="12.00">và theo dõi đơn</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g id="edge6" class="edge">
+<title>F&#45;&gt;G</title>
+<path fill="none" stroke="#657384" d="M507.04,-259.07C502.85,-246.43 496.98,-228.73 492.15,-214.17"/>
+<polygon fill="#657384" stroke="#657384" points="494.42,-213.77 490.21,-208.32 490.1,-215.2 494.42,-213.77"/>
+<text xml:space="preserve" text-anchor="middle" x="515.88" y="-229.52" font-family="Arial" font-size="10.00">Chưa</text>
+</g>
+<!-- H -->
+<g id="node8" class="node">
+<title>H</title>
+<path fill="#ffffff" stroke="#485666" d="M756.4,-206.52C756.4,-206.52 596.6,-206.52 596.6,-206.52 590.6,-206.52 584.6,-200.52 584.6,-194.52 584.6,-194.52 584.6,-179.64 584.6,-179.64 584.6,-173.64 590.6,-167.64 596.6,-167.64 596.6,-167.64 756.4,-167.64 756.4,-167.64 762.4,-167.64 768.4,-173.64 768.4,-179.64 768.4,-179.64 768.4,-194.52 768.4,-194.52 768.4,-200.52 762.4,-206.52 756.4,-206.52"/>
+<text xml:space="preserve" text-anchor="start" x="591.8" y="-189.48" font-family="Arial" font-size="12.00">Website: Tự động chuyển đơn</text>
+<text xml:space="preserve" text-anchor="start" x="623.48" y="-175.08" font-family="Arial" font-size="12.00">sang Hủy/Hết hạn</text>
+</g>
+<!-- F&#45;&gt;H -->
+<g id="edge7" class="edge">
+<title>F&#45;&gt;H</title>
+<path fill="none" stroke="#657384" d="M537.76,-262.05C563.49,-248.33 603.83,-226.82 634.4,-210.53"/>
+<polygon fill="#657384" stroke="#657384" points="635.15,-212.7 639.82,-207.64 633.01,-208.69 635.15,-212.7"/>
+<text xml:space="preserve" text-anchor="middle" x="649.85" y="-229.52" font-family="Arial" font-size="10.00">Đã hết hạn</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g id="edge9" class="edge">
+<title>H&#45;&gt;I</title>
+<path fill="none" stroke="#657384" d="M584.28,-169.18C549.52,-162.81 510,-155.57 475.2,-149.19"/>
+<polygon fill="#657384" stroke="#657384" points="475.68,-146.96 468.88,-148.03 474.86,-151.44 475.68,-146.96"/>
+</g>
+<!-- J -->
+<g id="node10" class="node">
+<title>J</title>
+<path fill="#ffffff" stroke="#485666" d="M467.07,-94.76C467.07,-94.76 297.93,-94.76 297.93,-94.76 291.93,-94.76 285.93,-88.76 285.93,-82.76 285.93,-82.76 285.93,-67.88 285.93,-67.88 285.93,-61.88 291.93,-55.88 297.93,-55.88 297.93,-55.88 467.07,-55.88 467.07,-55.88 473.07,-55.88 479.07,-61.88 479.07,-67.88 479.07,-67.88 479.07,-82.76 479.07,-82.76 479.07,-88.76 473.07,-94.76 467.07,-94.76"/>
+<text xml:space="preserve" text-anchor="start" x="293.13" y="-77.72" font-family="Arial" font-size="12.00">Website: Tính lại tồn khả dụng</text>
+<text xml:space="preserve" text-anchor="start" x="305.13" y="-63.32" font-family="Arial" font-size="12.00">Tồn thực tế không thay đổi</text>
+</g>
+<!-- I&#45;&gt;J -->
+<g id="edge10" class="edge">
+<title>I&#45;&gt;J</title>
+<path fill="none" stroke="#657384" d="M382.5,-111.36C382.5,-108.66 382.5,-105.85 382.5,-103.05"/>
+<polygon fill="#657384" stroke="#657384" points="384.77,-103.26 382.5,-96.76 380.22,-103.26 384.77,-103.26"/>
+</g>
+<!-- K -->
+<g id="node11" class="node">
+<title>K</title>
+<path fill="#ffffff" stroke="#485666" d="M474.41,-38.88C474.41,-38.88 290.58,-38.88 290.58,-38.88 284.58,-38.88 278.58,-32.88 278.58,-26.88 278.58,-26.88 278.58,-12 278.58,-12 278.58,-6 284.58,0 290.58,0 290.58,0 474.41,0 474.41,0 480.41,0 486.41,-6 486.41,-12 486.41,-12 486.41,-26.88 486.41,-26.88 486.41,-32.88 480.41,-38.88 474.41,-38.88"/>
+<text xml:space="preserve" text-anchor="start" x="358.82" y="-21.84" font-family="Arial" font-size="12.00">Kết thúc</text>
+<text xml:space="preserve" text-anchor="start" x="285.78" y="-7.44" font-family="Arial" font-size="12.00">Không yêu cầu FBO nhập lại hàng</text>
+</g>
+<!-- J&#45;&gt;K -->
+<g id="edge11" class="edge">
+<title>J&#45;&gt;K</title>
+<path fill="none" stroke="#657384" d="M382.5,-55.48C382.5,-52.78 382.5,-49.97 382.5,-47.17"/>
+<polygon fill="#657384" stroke="#657384" points="384.77,-47.38 382.5,-40.88 380.22,-47.38 384.77,-47.38"/>
+</g>
+</g>
+</svg>
+</div>
+
+
+<h3>7.3. Thanh toán thành công và ghi nhận bán hàng</h3>
+<p>Liên quan: <code>ORD-BR-003</code>, <code>ORD-BR-007</code>, <code>INVH-BR-001</code>, <code>INT-BR-001</code>, <code>INT-BR-002</code>.</p>
+<div class="diagram">
+
+<!-- Generated by graphviz version 14.1.3 (20260303.0454)
+ -->
+<!-- Pages: 1 -->
+<p><svg width="624pt" height="660pt"
+ viewBox="0.00 0.00 624.00 660.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(8.64 651.64)"></p>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<path fill="#ffffff" stroke="#485666" d="M372.17,-643C372.17,-643 153.65,-643 153.65,-643 147.65,-643 141.65,-637 141.65,-631 141.65,-631 141.65,-616.12 141.65,-616.12 141.65,-610.12 147.65,-604.12 153.65,-604.12 153.65,-604.12 372.17,-604.12 372.17,-604.12 378.17,-604.12 384.17,-610.12 384.17,-616.12 384.17,-616.12 384.17,-631 384.17,-631 384.17,-637 378.17,-643 372.17,-643"/>
+<text xml:space="preserve" text-anchor="start" x="148.85" y="-625.96" font-family="Arial" font-size="12.00">Đầu vào: Website đã xác nhận thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="195.88" y="-611.56" font-family="Arial" font-size="12.00">bằng chức năng có sẵn</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<path fill="#ffffff" stroke="#485666" d="M368.83,-587.12C368.83,-587.12 156.99,-587.12 156.99,-587.12 150.99,-587.12 144.99,-581.12 144.99,-575.12 144.99,-575.12 144.99,-560.24 144.99,-560.24 144.99,-554.24 150.99,-548.24 156.99,-548.24 156.99,-548.24 368.83,-548.24 368.83,-548.24 374.83,-548.24 380.83,-554.24 380.83,-560.24 380.83,-560.24 380.83,-575.12 380.83,-575.12 380.83,-581.12 374.83,-587.12 368.83,-587.12"/>
+<text xml:space="preserve" text-anchor="start" x="189.54" y="-570.08" font-family="Arial" font-size="12.00">Website: Đơn Đã thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="152.19" y="-555.68" font-family="Arial" font-size="12.00">Tiếp tục giữ hàng, không tự hủy theo T</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M262.91,-603.72C262.91,-601.02 262.91,-598.21 262.91,-595.41"/>
+<polygon fill="#657384" stroke="#657384" points="265.19,-595.62 262.91,-589.12 260.64,-595.62 265.19,-595.62"/>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<path fill="#ffffff" stroke="#485666" d="M361.82,-531.24C361.82,-531.24 164,-531.24 164,-531.24 158,-531.24 152,-525.24 152,-519.24 152,-519.24 152,-504.36 152,-504.36 152,-498.36 158,-492.36 164,-492.36 164,-492.36 361.82,-492.36 361.82,-492.36 367.82,-492.36 373.82,-498.36 373.82,-504.36 373.82,-504.36 373.82,-519.24 373.82,-519.24 373.82,-525.24 367.82,-531.24 361.82,-531.24"/>
+<text xml:space="preserve" text-anchor="start" x="159.2" y="-514.2" font-family="Arial" font-size="12.00">Website: Gửi đơn và thông tin hóa đơn</text>
+<text xml:space="preserve" text-anchor="start" x="235.9" y="-499.8" font-family="Arial" font-size="12.00">sang FBO</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#657384" d="M262.91,-547.84C262.91,-545.14 262.91,-542.33 262.91,-539.53"/>
+<polygon fill="#657384" stroke="#657384" points="265.19,-539.74 262.91,-533.24 260.64,-539.74 265.19,-539.74"/>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<path fill="#ffffff" stroke="#485666" d="M357.47,-475.36C357.47,-475.36 168.35,-475.36 168.35,-475.36 162.35,-475.36 156.35,-469.36 156.35,-463.36 156.35,-463.36 156.35,-448.48 156.35,-448.48 156.35,-442.48 162.35,-436.48 168.35,-436.48 168.35,-436.48 357.47,-436.48 357.47,-436.48 363.47,-436.48 369.47,-442.48 369.47,-448.48 369.47,-448.48 369.47,-463.36 369.47,-463.36 369.47,-469.36 363.47,-475.36 357.47,-475.36"/>
+<text xml:space="preserve" text-anchor="start" x="190.88" y="-458.32" font-family="Arial" font-size="12.00">FBO: Xử lý giao dịch bán</text>
+<text xml:space="preserve" text-anchor="start" x="163.55" y="-443.92" font-family="Arial" font-size="12.00">Tạo HĐBH và trừ tồn đúng một lần</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>C&#45;&gt;D</title>
+<path fill="none" stroke="#657384" d="M262.91,-491.96C262.91,-489.26 262.91,-486.45 262.91,-483.65"/>
+<polygon fill="#657384" stroke="#657384" points="265.19,-483.86 262.91,-477.36 260.64,-483.86 265.19,-483.86"/>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<polygon fill="#eef2f5" stroke="#485666" points="262.91,-419.48 78.41,-380.6 262.91,-341.72 447.41,-380.6 262.91,-419.48"/>
+<text xml:space="preserve" text-anchor="start" x="197.22" y="-383" font-family="Arial" font-size="12.00">Website xác nhận được</text>
+<text xml:space="preserve" text-anchor="start" x="177.86" y="-368.6" font-family="Arial" font-size="12.00">FBO ghi nhận bán thành công?</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#657384" d="M262.91,-436.04C262.91,-433.38 262.91,-430.55 262.91,-427.64"/>
+<polygon fill="#657384" stroke="#657384" points="265.19,-427.82 262.91,-421.32 260.64,-427.82 265.19,-427.82"/>
+</g>
+<!-- F -->
+<g id="node6" class="node">
+<title>F</title>
+<path fill="#ffffff" stroke="#485666" d="M211.82,-306.52C211.82,-306.52 12,-306.52 12,-306.52 6,-306.52 0,-300.52 0,-294.52 0,-294.52 0,-279.64 0,-279.64 0,-273.64 6,-267.64 12,-267.64 12,-267.64 211.82,-267.64 211.82,-267.64 217.82,-267.64 223.82,-273.64 223.82,-279.64 223.82,-279.64 223.82,-294.52 223.82,-294.52 223.82,-300.52 217.82,-306.52 211.82,-306.52"/>
+<text xml:space="preserve" text-anchor="start" x="9.2" y="-289.48" font-family="Arial" font-size="12.00">Website: Giữ trạng thái Đã thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="7.2" y="-275.08" font-family="Arial" font-size="12.00">Tiếp tục giữ hàng, lưu lỗi để theo dõi</text>
+</g>
+<!-- E&#45;&gt;F -->
+<g id="edge5" class="edge">
+<title>E&#45;&gt;F</title>
+<path fill="none" stroke="#657384" d="M166.03,-361.71C137.86,-354.43 112.35,-345.03 103.84,-333.72 99.74,-328.27 99.24,-321.42 100.41,-314.7"/>
+<polygon fill="#657384" stroke="#657384" points="102.61,-315.28 102.05,-308.42 98.2,-314.13 102.61,-315.28"/>
+<text xml:space="preserve" text-anchor="middle" x="176.38" y="-324.72" font-family="Arial" font-size="10.00">Lỗi / chưa xong / mất phản hồi</text>
+</g>
+<!-- H -->
+<g id="node8" class="node">
+<title>H</title>
+<path fill="#ffffff" stroke="#485666" d="M486.83,-313.72C486.83,-313.72 302.99,-313.72 302.99,-313.72 296.99,-313.72 290.99,-307.72 290.99,-301.72 290.99,-301.72 290.99,-272.44 290.99,-272.44 290.99,-266.44 296.99,-260.44 302.99,-260.44 302.99,-260.44 486.83,-260.44 486.83,-260.44 492.83,-260.44 498.83,-266.44 498.83,-272.44 498.83,-272.44 498.83,-301.72 498.83,-301.72 498.83,-307.72 492.83,-313.72 486.83,-313.72"/>
+<text xml:space="preserve" text-anchor="start" x="307.54" y="-296.68" font-family="Arial" font-size="12.00">Website: Cập nhật tồn thực tế</text>
+<text xml:space="preserve" text-anchor="start" x="298.19" y="-282.28" font-family="Arial" font-size="12.00">và giải phóng lượng giữ tương ứng</text>
+<text xml:space="preserve" text-anchor="start" x="338.89" y="-267.88" font-family="Arial" font-size="12.00">một cách nhất quán</text>
+</g>
+<!-- E&#45;&gt;H -->
+<g id="edge8" class="edge">
+<title>E&#45;&gt;H</title>
+<path fill="none" stroke="#657384" d="M305.04,-350.39C319.83,-340.14 336.46,-328.6 351.37,-318.27"/>
+<polygon fill="#657384" stroke="#657384" points="352.35,-320.36 356.39,-314.79 349.75,-316.62 352.35,-320.36"/>
+<text xml:space="preserve" text-anchor="middle" x="351" y="-324.72" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- G -->
+<g id="node7" class="node">
+<title>G</title>
+<path fill="#ffffff" stroke="#485666" d="M248.15,-243.44C248.15,-243.44 19.67,-243.44 19.67,-243.44 13.67,-243.44 7.67,-237.44 7.67,-231.44 7.67,-231.44 7.67,-202.16 7.67,-202.16 7.67,-196.16 13.67,-190.16 19.67,-190.16 19.67,-190.16 248.15,-190.16 248.15,-190.16 254.15,-190.16 260.15,-196.16 260.15,-202.16 260.15,-202.16 260.15,-231.44 260.15,-231.44 260.15,-237.44 254.15,-243.44 248.15,-243.44"/>
+<text xml:space="preserve" text-anchor="start" x="14.87" y="-226.4" font-family="Arial" font-size="12.00">Website phối hợp FBO: Đối chiếu kết quả</text>
+<text xml:space="preserve" text-anchor="start" x="54.54" y="-212" font-family="Arial" font-size="12.00">hoặc gửi lại cùng giao dịch</text>
+<text xml:space="preserve" text-anchor="start" x="55.87" y="-197.6" font-family="Arial" font-size="12.00">Không tạo bán/trừ tồn trùng</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g id="edge6" class="edge">
+<title>F&#45;&gt;G</title>
+<path fill="none" stroke="#657384" d="M117.92,-267.42C119.53,-262.43 121.32,-256.87 123.1,-251.34"/>
+<polygon fill="#657384" stroke="#657384" points="125.22,-252.18 125.05,-245.3 120.89,-250.79 125.22,-252.18"/>
+</g>
+<!-- G&#45;&gt;E -->
+<g id="edge7" class="edge">
+<title>G&#45;&gt;E</title>
+<path fill="none" stroke="#657384" d="M213.62,-243.93C220.8,-248.59 227.42,-254.05 232.91,-260.44 250.28,-280.66 257.84,-309.54 261.03,-333.8"/>
+<polygon fill="#657384" stroke="#657384" points="258.74,-333.8 261.75,-340 263.26,-333.28 258.74,-333.8"/>
+</g>
+<!-- I -->
+<g id="node9" class="node">
+<title>I</title>
+<path fill="#ffffff" stroke="#485666" d="M496.15,-234.8C496.15,-234.8 293.67,-234.8 293.67,-234.8 287.67,-234.8 281.67,-228.8 281.67,-222.8 281.67,-222.8 281.67,-210.8 281.67,-210.8 281.67,-204.8 287.67,-198.8 293.67,-198.8 293.67,-198.8 496.15,-198.8 496.15,-198.8 502.15,-198.8 508.15,-204.8 508.15,-210.8 508.15,-210.8 508.15,-222.8 508.15,-222.8 508.15,-228.8 502.15,-234.8 496.15,-234.8"/>
+<text xml:space="preserve" text-anchor="start" x="288.87" y="-212" font-family="Arial" font-size="12.00">Website: Chuyển đơn sang Đã xuất HĐ</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g id="edge9" class="edge">
+<title>H&#45;&gt;I</title>
+<path fill="none" stroke="#657384" d="M394.91,-260.27C394.91,-254.58 394.91,-248.57 394.91,-242.92"/>
+<polygon fill="#657384" stroke="#657384" points="397.19,-242.98 394.91,-236.48 392.64,-242.98 397.19,-242.98"/>
+</g>
+<!-- J -->
+<g id="node10" class="node">
+<title>J</title>
+<path fill="#ffffff" stroke="#485666" d="M502.16,-173.16C502.16,-173.16 287.66,-173.16 287.66,-173.16 281.66,-173.16 275.66,-167.16 275.66,-161.16 275.66,-161.16 275.66,-146.28 275.66,-146.28 275.66,-140.28 281.66,-134.28 287.66,-134.28 287.66,-134.28 502.16,-134.28 502.16,-134.28 508.16,-134.28 514.16,-140.28 514.16,-146.28 514.16,-146.28 514.16,-161.16 514.16,-161.16 514.16,-167.16 508.16,-173.16 502.16,-173.16"/>
+<text xml:space="preserve" text-anchor="start" x="315.55" y="-156.12" font-family="Arial" font-size="12.00">Theo dõi riêng kết quả HĐĐT</text>
+<text xml:space="preserve" text-anchor="start" x="282.86" y="-141.72" font-family="Arial" font-size="12.00">FBO phối hợp Portal khởi tạo/phát hành</text>
+</g>
+<!-- I&#45;&gt;J -->
+<g id="edge10" class="edge">
+<title>I&#45;&gt;J</title>
+<path fill="none" stroke="#657384" d="M394.91,-198.46C394.91,-193.13 394.91,-187.13 394.91,-181.32"/>
+<polygon fill="#657384" stroke="#657384" points="397.19,-181.62 394.91,-175.12 392.64,-181.62 397.19,-181.62"/>
+</g>
+<!-- K -->
+<g id="node11" class="node">
+<title>K</title>
+<polygon fill="#eef2f5" stroke="#485666" points="298.91,-117.28 135.14,-99.28 298.91,-81.28 462.68,-99.28 298.91,-117.28"/>
+<text xml:space="preserve" text-anchor="start" x="221.2" y="-94.48" font-family="Arial" font-size="12.00">HĐĐT phát hành thành công?</text>
+</g>
+<!-- J&#45;&gt;K -->
+<g id="edge11" class="edge">
+<title>J&#45;&gt;K</title>
+<path fill="none" stroke="#657384" d="M360.25,-133.79C351.09,-128.78 341.23,-123.4 332.15,-118.44"/>
+<polygon fill="#657384" stroke="#657384" points="333.5,-116.58 326.71,-115.47 331.32,-120.58 333.5,-116.58"/>
+</g>
+<!-- L -->
+<g id="node12" class="node">
+<title>L</title>
+<path fill="#ffffff" stroke="#485666" d="M345.14,-46.08C345.14,-46.08 202.68,-46.08 202.68,-46.08 196.68,-46.08 190.68,-40.08 190.68,-34.08 190.68,-34.08 190.68,-19.2 190.68,-19.2 190.68,-13.2 196.68,-7.2 202.68,-7.2 202.68,-7.2 345.14,-7.2 345.14,-7.2 351.14,-7.2 357.14,-13.2 357.14,-19.2 357.14,-19.2 357.14,-34.08 357.14,-34.08 357.14,-40.08 351.14,-46.08 345.14,-46.08"/>
+<text xml:space="preserve" text-anchor="start" x="197.88" y="-29.04" font-family="Arial" font-size="12.00">Website: Lưu thông tin HĐĐT</text>
+<text xml:space="preserve" text-anchor="start" x="222.56" y="-14.64" font-family="Arial" font-size="12.00">và liên kết với đơn</text>
+</g>
+<!-- K&#45;&gt;L -->
+<g id="edge12" class="edge">
+<title>K&#45;&gt;L</title>
+<path fill="none" stroke="#657384" d="M292.99,-81.54C290.07,-73.32 286.5,-63.21 283.23,-53.99"/>
+<polygon fill="#657384" stroke="#657384" points="285.4,-53.3 281.09,-47.93 281.11,-54.82 285.4,-53.3"/>
+<text xml:space="preserve" text-anchor="middle" x="295.77" y="-64.28" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- M -->
+<g id="node13" class="node">
+<title>M</title>
+<path fill="#ffffff" stroke="#485666" d="M594.48,-53.28C594.48,-53.28 387.34,-53.28 387.34,-53.28 381.34,-53.28 375.34,-47.28 375.34,-41.28 375.34,-41.28 375.34,-12 375.34,-12 375.34,-6 381.34,0 387.34,0 387.34,0 594.48,0 594.48,0 600.48,0 606.48,-6 606.48,-12 606.48,-12 606.48,-41.28 606.48,-41.28 606.48,-47.28 600.48,-53.28 594.48,-53.28"/>
+<text xml:space="preserve" text-anchor="start" x="382.54" y="-36.24" font-family="Arial" font-size="12.00">Theo dõi và xử lý tiếp riêng phần HĐĐT</text>
+<text xml:space="preserve" text-anchor="start" x="419.22" y="-21.84" font-family="Arial" font-size="12.00">Giữ trạng thái Đã xuất HĐ</text>
+<text xml:space="preserve" text-anchor="start" x="387.86" y="-7.44" font-family="Arial" font-size="12.00">Không ghi nhận bán hoặc trừ tồn lại</text>
+</g>
+<!-- K&#45;&gt;M -->
+<g id="edge13" class="edge">
+<title>K&#45;&gt;M</title>
+<path fill="none" stroke="#657384" d="M335.48,-84.83C357.26,-76.81 385.76,-66.32 412.41,-56.52"/>
+<polygon fill="#657384" stroke="#657384" points="413.14,-58.68 418.45,-54.3 411.57,-54.41 413.14,-58.68"/>
+<text xml:space="preserve" text-anchor="middle" x="417.42" y="-64.28" font-family="Arial" font-size="10.00">Chưa / lỗi</text>
+</g>
+<!-- M&#45;&gt;J -->
+<g id="edge14" class="edge">
+<title>M&#45;&gt;J</title>
+<path fill="none" stroke="#657384" d="M491.41,-53.42C490.49,-72.89 486.31,-99.26 471.91,-117.28 468.16,-121.97 463.66,-126.06 458.73,-129.63"/>
+<polygon fill="#657384" stroke="#657384" points="457.72,-127.57 453.55,-133.05 460.22,-131.37 457.72,-127.57"/>
+</g>
+</g>
+</svg>
+</div>
+
+
+<p>Sơ đồ tách kết quả bán hàng và kết quả HĐĐT để dễ theo dõi; FBO có thể khởi tạo HĐĐT cùng lúc xử lý bán hàng. Trạng thái Đã xuất HĐ tại đây xác nhận HĐBH/tồn đã được cập nhật, không mặc định HĐĐT đã phát hành thành công.</p>
+<p>Thông tin HĐĐT cần có: số hóa đơn, ký hiệu, mẫu số, link tra cứu và mã tra cứu. Đây là nhu cầu dữ liệu nghiệp vụ; tên trường, định dạng và cách trả kết quả được quy định trong SRS/API.</p>
+<p>Nếu FBO lỗi, chưa xử lý xong hoặc Website không nhận được phản hồi, đơn giữ trạng thái Đã thanh toán. Website hiển thị kết quả thanh toán đã thành công và kết quả đồng bộ đang chờ/lỗi để nhân sự theo dõi; lưu thông tin lỗi, tiếp tục kiểm tra kết quả hoặc gửi lại cùng giao dịch. Mất phản hồi không được coi là FBO chưa thực hiện nghiệp vụ. Việc xử lý tiếp phải tuân thủ <code>INT-BRU-001</code> để tránh tạo HĐBH hoặc trừ tồn trùng.</p>
+<p>Nếu không thể hoàn tất đồng bộ và cần kết thúc đơn đã trả tiền, phải xử lý theo nghiệp vụ hủy/hoàn sau thanh toán, xác minh kết quả tại FBO để xử lý chứng từ và tồn phù hợp; không dùng thao tác hủy trước thanh toán để nhả tồn trực tiếp. Chi tiết trình tự thuộc <code>ISS-007</code>. Việc hoàn tiền được xử lý ngoài phạm vi tích hợp này.</p>
+<h4>7.3.1. Chuyển trạng thái và tác động tồn</h4>
+<table>
+<thead>
+<tr>
+<th>Trạng thái/sự kiện</th>
+<th>Thanh toán</th>
+<th>Đồng bộ bán hàng FBO</th>
+<th>Tồn bị giữ</th>
+<th>Tự hủy theo T</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chờ thanh toán</td>
+<td>Chưa xác nhận thành công</td>
+<td>Chưa gửi bán hàng</td>
+<td>Có</td>
+<td>Có, nếu chưa thanh toán</td>
+</tr>
+<tr>
+<td>Đã thanh toán</td>
+<td>Đã thành công</td>
+<td>Chưa gửi / đang xử lý / lỗi / chưa rõ kết quả</td>
+<td>Tiếp tục giữ</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Đã xuất HĐ</td>
+<td>Đã thành công</td>
+<td>HĐBH, trừ tồn và cập nhật Website đã hoàn tất</td>
+<td>Giải phóng lượng tương ứng</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Hủy/Hết hạn trước thanh toán</td>
+<td>Chưa thanh toán</td>
+<td>Không phát sinh bán hàng</td>
+<td>Giải phóng</td>
+<td>Đã kết thúc</td>
+</tr>
+</tbody></table>
+<div class="diagram">
+
+<!-- Generated by graphviz version 14.1.3 (20260303.0454)
+ -->
+<!-- Pages: 1 -->
+<p><svg width="833pt" height="157pt"
+ viewBox="0.00 0.00 833.00 157.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(8.64 148.72)"></p>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<path fill="#ffffff" stroke="#485666" d="M87.79,-55.88C87.79,-55.88 12,-55.88 12,-55.88 6,-55.88 0,-49.88 0,-43.88 0,-43.88 0,-29 0,-29 0,-23 6,-17 12,-17 12,-17 87.79,-17 87.79,-17 93.79,-17 99.79,-23 99.79,-29 99.79,-29 99.79,-43.88 99.79,-43.88 99.79,-49.88 93.79,-55.88 87.79,-55.88"/>
+<text xml:space="preserve" text-anchor="start" x="7.2" y="-38.84" font-family="Arial" font-size="12.00">Chờ thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="15.88" y="-24.44" font-family="Arial" font-size="12.00">Có giữ hàng</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<path fill="#ffffff" stroke="#485666" d="M390.78,-110.08C390.78,-110.08 285.65,-110.08 285.65,-110.08 279.65,-110.08 273.65,-104.08 273.65,-98.08 273.65,-98.08 273.65,-68.8 273.65,-68.8 273.65,-62.8 279.65,-56.8 285.65,-56.8 285.65,-56.8 390.78,-56.8 390.78,-56.8 396.78,-56.8 402.78,-62.8 402.78,-68.8 402.78,-68.8 402.78,-98.08 402.78,-98.08 402.78,-104.08 396.78,-110.08 390.78,-110.08"/>
+<text xml:space="preserve" text-anchor="start" x="301.52" y="-93.04" font-family="Arial" font-size="12.00">Đã thanh toán</text>
+<text xml:space="preserve" text-anchor="start" x="287.19" y="-78.64" font-family="Arial" font-size="12.00">Tiếp tục giữ hàng</text>
+<text xml:space="preserve" text-anchor="start" x="280.85" y="-64.24" font-family="Arial" font-size="12.00">Không tự hủy theo T</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M100.23,-45.15C102.78,-45.59 105.32,-46.02 107.79,-46.44 160.63,-55.34 220.39,-64.97 265.68,-72.17"/>
+<polygon fill="#657384" stroke="#657384" points="265.11,-74.38 271.89,-73.16 265.83,-69.89 265.11,-74.38"/>
+<text xml:space="preserve" text-anchor="middle" x="186.72" y="-74.38" font-family="Arial" font-size="10.00">Website đã xác nhận thanh toán</text>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<path fill="#ffffff" stroke="#485666" d="M379.1,-38.88C379.1,-38.88 297.33,-38.88 297.33,-38.88 291.33,-38.88 285.33,-32.88 285.33,-26.88 285.33,-26.88 285.33,-12 285.33,-12 285.33,-6 291.33,0 297.33,0 297.33,0 379.1,0 379.1,0 385.1,0 391.1,-6 391.1,-12 391.1,-12 391.1,-26.88 391.1,-26.88 391.1,-32.88 385.1,-38.88 379.1,-38.88"/>
+<text xml:space="preserve" text-anchor="start" x="299.87" y="-21.84" font-family="Arial" font-size="12.00">Hủy/Hết hạn</text>
+<text xml:space="preserve" text-anchor="start" x="292.53" y="-7.44" font-family="Arial" font-size="12.00">Nhả tồn bị giữ</text>
+</g>
+<!-- A&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>A&#45;&gt;C</title>
+<path fill="none" stroke="#657384" d="M100.11,-33.52C149.24,-30.6 224.78,-26.12 277.35,-22.99"/>
+<polygon fill="#657384" stroke="#657384" points="277.39,-25.27 283.74,-22.61 277.12,-20.73 277.39,-25.27"/>
+<text xml:space="preserve" text-anchor="middle" x="186.72" y="-35.77" font-family="Arial" font-size="10.00">Hủy / hết hạn khi chưa thanh toán</text>
+</g>
+<!-- B&#45;&gt;B -->
+<g id="edge4" class="edge">
+<title>B&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M309.84,-110.46C309.23,-120.17 318.68,-128.08 338.21,-128.08 352.25,-128.08 361.08,-123.99 364.72,-118.09"/>
+<polygon fill="#657384" stroke="#657384" points="366.89,-118.79 366.23,-111.93 362.47,-117.7 366.89,-118.79"/>
+<text xml:space="preserve" text-anchor="middle" x="338.21" y="-131.08" font-family="Arial" font-size="10.00">Đồng bộ lỗi / chưa rõ kết quả</text>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<path fill="#ffffff" stroke="#485666" d="M803.58,-102.88C803.58,-102.88 633.09,-102.88 633.09,-102.88 627.09,-102.88 621.09,-96.88 621.09,-90.88 621.09,-90.88 621.09,-76 621.09,-76 621.09,-70 627.09,-64 633.09,-64 633.09,-64 803.58,-64 803.58,-64 809.58,-64 815.58,-70 815.58,-76 815.58,-76 815.58,-90.88 815.58,-90.88 815.58,-96.88 809.58,-102.88 803.58,-102.88"/>
+<text xml:space="preserve" text-anchor="start" x="687.66" y="-85.84" font-family="Arial" font-size="12.00">Đã xuất HĐ</text>
+<text xml:space="preserve" text-anchor="start" x="628.29" y="-71.44" font-family="Arial" font-size="12.00">Giải phóng lượng giữ tương ứng</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>B&#45;&gt;D</title>
+<path fill="none" stroke="#657384" d="M402.93,-83.44C460.28,-83.44 545.65,-83.44 612.96,-83.44"/>
+<polygon fill="#657384" stroke="#657384" points="612.64,-85.72 619.14,-83.44 612.64,-81.17 612.64,-85.72"/>
+<text xml:space="preserve" text-anchor="middle" x="511.93" y="-86.44" font-family="Arial" font-size="10.00">FBO ghi nhận bán và Website cập nhật tồn</text>
+</g>
+</g>
+</svg>
+</div>
+
+
+<p>Thanh toán thành công chỉ chuyển loại đơn đang giữ, không làm thay đổi lượng giữ. Khi đồng bộ thành công, lượng giữ được chuyển thành lượng đã bán; tồn thực tế và tồn bị giữ cùng giảm số lượng tương ứng. Nếu một bản cập nhật tồn đã phản ánh giao dịch bán, hệ thống phải đối chiếu phần giữ tương ứng để không trừ cùng lượng hàng hai lần; cơ chế thực hiện được đặc tả tại <code>ISS-004</code>.</p>
+<h3>7.4. Hủy/hoàn sau thanh toán</h3>
+<p>Liên quan: <code>ORD-BR-005</code>, <code>ORD-BR-006</code>, <code>INV-BR-003</code>, <code>INVH-BR-002</code>.</p>
+<div class="diagram">
+
+<!-- Generated by graphviz version 14.1.3 (20260303.0454)
+ -->
+<!-- Pages: 1 -->
+<p><svg width="853pt" height="928pt"
+ viewBox="0.00 0.00 853.00 928.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(8.64 919.04)"></p>
+<!-- A -->
+<g id="node1" class="node">
+<title>A</title>
+<path fill="#ffffff" stroke="#485666" d="M258.06,-910.4C258.06,-910.4 93.56,-910.4 93.56,-910.4 87.56,-910.4 81.56,-904.4 81.56,-898.4 81.56,-898.4 81.56,-883.52 81.56,-883.52 81.56,-877.52 87.56,-871.52 93.56,-871.52 93.56,-871.52 258.06,-871.52 258.06,-871.52 264.06,-871.52 270.06,-877.52 270.06,-883.52 270.06,-883.52 270.06,-898.4 270.06,-898.4 270.06,-904.4 264.06,-910.4 258.06,-910.4"/>
+<text xml:space="preserve" text-anchor="start" x="88.76" y="-893.36" font-family="Arial" font-size="12.00">Khách hàng: Yêu cầu hủy/hoàn</text>
+<text xml:space="preserve" text-anchor="start" x="107.77" y="-878.96" font-family="Arial" font-size="12.00">một phần hoặc toàn bộ</text>
+</g>
+<!-- B -->
+<g id="node2" class="node">
+<title>B</title>
+<polygon fill="#eef2f5" stroke="#485666" points="175.81,-854.52 0,-815.64 175.81,-776.76 351.62,-815.64 175.81,-854.52"/>
+<text xml:space="preserve" text-anchor="start" x="95.1" y="-818.04" font-family="Arial" font-size="12.00">Website: Đáp ứng chính sách</text>
+<text xml:space="preserve" text-anchor="start" x="95.77" y="-803.64" font-family="Arial" font-size="12.00">và số lượng còn được hoàn?</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g id="edge1" class="edge">
+<title>A&#45;&gt;B</title>
+<path fill="none" stroke="#657384" d="M175.81,-871.08C175.81,-868.42 175.81,-865.59 175.81,-862.68"/>
+<polygon fill="#657384" stroke="#657384" points="178.08,-862.86 175.81,-856.36 173.53,-862.86 178.08,-862.86"/>
+</g>
+<!-- C -->
+<g id="node3" class="node">
+<title>C</title>
+<path fill="#ffffff" stroke="#485666" d="M249.73,-748.76C249.73,-748.76 49.88,-748.76 49.88,-748.76 43.88,-748.76 37.88,-742.76 37.88,-736.76 37.88,-736.76 37.88,-721.88 37.88,-721.88 37.88,-715.88 43.88,-709.88 49.88,-709.88 49.88,-709.88 249.73,-709.88 249.73,-709.88 255.73,-709.88 261.73,-715.88 261.73,-721.88 261.73,-721.88 261.73,-736.76 261.73,-736.76 261.73,-742.76 255.73,-748.76 249.73,-748.76"/>
+<text xml:space="preserve" text-anchor="start" x="45.08" y="-731.72" font-family="Arial" font-size="12.00">Website: Thông báo không chấp nhận</text>
+<text xml:space="preserve" text-anchor="start" x="58.43" y="-717.32" font-family="Arial" font-size="12.00">Không điều chỉnh tồn/chứng từ</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g id="edge2" class="edge">
+<title>B&#45;&gt;C</title>
+<path fill="none" stroke="#657384" d="M164.78,-778.88C162.46,-771.37 160.06,-763.57 157.88,-756.49"/>
+<polygon fill="#657384" stroke="#657384" points="160.14,-756.11 156.05,-750.57 155.79,-757.45 160.14,-756.11"/>
+<text xml:space="preserve" text-anchor="middle" x="175.71" y="-759.76" font-family="Arial" font-size="10.00">Không</text>
+</g>
+<!-- D -->
+<g id="node4" class="node">
+<title>D</title>
+<path fill="#ffffff" stroke="#485666" d="M491.72,-748.76C491.72,-748.76 291.9,-748.76 291.9,-748.76 285.9,-748.76 279.9,-742.76 279.9,-736.76 279.9,-736.76 279.9,-721.88 279.9,-721.88 279.9,-715.88 285.9,-709.88 291.9,-709.88 291.9,-709.88 491.72,-709.88 491.72,-709.88 497.72,-709.88 503.72,-715.88 503.72,-721.88 503.72,-721.88 503.72,-736.76 503.72,-736.76 503.72,-742.76 497.72,-748.76 491.72,-748.76"/>
+<text xml:space="preserve" text-anchor="start" x="287.1" y="-731.72" font-family="Arial" font-size="12.00">Website: Xác định đơn/chứng từ gốc</text>
+<text xml:space="preserve" text-anchor="start" x="297.77" y="-717.32" font-family="Arial" font-size="12.00">Mặt hàng, số lượng, giá trị, lý do</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g id="edge3" class="edge">
+<title>B&#45;&gt;D</title>
+<path fill="none" stroke="#657384" d="M238.57,-790.14C269.35,-778.12 306.1,-763.78 335.9,-752.14"/>
+<polygon fill="#657384" stroke="#657384" points="336.68,-754.28 341.91,-749.8 335.03,-750.04 336.68,-754.28"/>
+<text xml:space="preserve" text-anchor="middle" x="328.33" y="-759.76" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- E -->
+<g id="node5" class="node">
+<title>E</title>
+<path fill="#ffffff" stroke="#485666" d="M490.72,-692.88C490.72,-692.88 292.89,-692.88 292.89,-692.88 286.89,-692.88 280.89,-686.88 280.89,-680.88 280.89,-680.88 280.89,-666 280.89,-666 280.89,-660 286.89,-654 292.89,-654 292.89,-654 490.72,-654 490.72,-654 496.72,-654 502.72,-660 502.72,-666 502.72,-666 502.72,-680.88 502.72,-680.88 502.72,-686.88 496.72,-692.88 490.72,-692.88"/>
+<text xml:space="preserve" text-anchor="start" x="326.45" y="-675.84" font-family="Arial" font-size="12.00">Website phối hợp FBO:</text>
+<text xml:space="preserve" text-anchor="start" x="288.09" y="-661.44" font-family="Arial" font-size="12.00">Xác minh kết quả giao dịch bán gốc</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g id="edge4" class="edge">
+<title>D&#45;&gt;E</title>
+<path fill="none" stroke="#657384" d="M391.81,-709.48C391.81,-706.78 391.81,-703.97 391.81,-701.17"/>
+<polygon fill="#657384" stroke="#657384" points="394.08,-701.38 391.81,-694.88 389.53,-701.38 394.08,-701.38"/>
+</g>
+<!-- F -->
+<g id="node6" class="node">
+<title>F</title>
+<polygon fill="#eef2f5" stroke="#485666" points="391.81,-637 224,-598.12 391.81,-559.24 559.62,-598.12 391.81,-637"/>
+<text xml:space="preserve" text-anchor="start" x="315.1" y="-600.52" font-family="Arial" font-size="12.00">Đã xác nhận giao dịch gốc</text>
+<text xml:space="preserve" text-anchor="start" x="323.78" y="-586.12" font-family="Arial" font-size="12.00">được ghi nhận tại FBO?</text>
+</g>
+<!-- E&#45;&gt;F -->
+<g id="edge5" class="edge">
+<title>E&#45;&gt;F</title>
+<path fill="none" stroke="#657384" d="M391.81,-653.56C391.81,-650.9 391.81,-648.07 391.81,-645.16"/>
+<polygon fill="#657384" stroke="#657384" points="394.08,-645.34 391.81,-638.84 389.53,-645.34 394.08,-645.34"/>
+</g>
+<!-- G -->
+<g id="node7" class="node">
+<title>G</title>
+<path fill="#ffffff" stroke="#485666" d="M464.74,-531.24C464.74,-531.24 230.87,-531.24 230.87,-531.24 224.87,-531.24 218.87,-525.24 218.87,-519.24 218.87,-519.24 218.87,-489.96 218.87,-489.96 218.87,-483.96 224.87,-477.96 230.87,-477.96 230.87,-477.96 464.74,-477.96 464.74,-477.96 470.74,-477.96 476.74,-483.96 476.74,-489.96 476.74,-489.96 476.74,-519.24 476.74,-519.24 476.74,-525.24 470.74,-531.24 464.74,-531.24"/>
+<text xml:space="preserve" text-anchor="start" x="227.42" y="-514.2" font-family="Arial" font-size="12.00">Đối chiếu và xử lý giao dịch chưa hoàn tất</text>
+<text xml:space="preserve" text-anchor="start" x="312.78" y="-499.8" font-family="Arial" font-size="12.00">theo ISS&#45;007</text>
+<text xml:space="preserve" text-anchor="start" x="226.07" y="-485.4" font-family="Arial" font-size="12.00">Không tự nhả tồn hoặc tạo chứng từ hoàn</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g id="edge6" class="edge">
+<title>F&#45;&gt;G</title>
+<path fill="none" stroke="#657384" d="M375.3,-562.78C371.49,-554.86 367.45,-546.45 363.67,-538.59"/>
+<polygon fill="#657384" stroke="#657384" points="365.81,-537.79 360.94,-532.91 361.71,-539.76 365.81,-537.79"/>
+<text xml:space="preserve" text-anchor="middle" x="401.28" y="-542.24" font-family="Arial" font-size="10.00">Chưa / chưa rõ</text>
+</g>
+<!-- H -->
+<g id="node8" class="node">
+<title>H</title>
+<path fill="#ffffff" stroke="#485666" d="M731.06,-522.6C731.06,-522.6 506.56,-522.6 506.56,-522.6 500.56,-522.6 494.56,-516.6 494.56,-510.6 494.56,-510.6 494.56,-498.6 494.56,-498.6 494.56,-492.6 500.56,-486.6 506.56,-486.6 506.56,-486.6 731.06,-486.6 731.06,-486.6 737.06,-486.6 743.06,-492.6 743.06,-498.6 743.06,-498.6 743.06,-510.6 743.06,-510.6 743.06,-516.6 737.06,-522.6 731.06,-522.6"/>
+<text xml:space="preserve" text-anchor="start" x="501.76" y="-499.8" font-family="Arial" font-size="12.00">Website: Gửi yêu cầu hủy/hoàn sang FBO</text>
+</g>
+<!-- F&#45;&gt;H -->
+<g id="edge7" class="edge">
+<title>F&#45;&gt;H</title>
+<path fill="none" stroke="#657384" d="M452.04,-572.83C488.34,-558.2 534.04,-539.78 568.41,-525.92"/>
+<polygon fill="#657384" stroke="#657384" points="568.99,-528.14 574.16,-523.6 567.29,-523.92 568.99,-528.14"/>
+<text xml:space="preserve" text-anchor="middle" x="538.7" y="-542.24" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- I -->
+<g id="node9" class="node">
+<title>I</title>
+<path fill="#ffffff" stroke="#485666" d="M750.39,-460.96C750.39,-460.96 487.23,-460.96 487.23,-460.96 481.23,-460.96 475.23,-454.96 475.23,-448.96 475.23,-448.96 475.23,-434.08 475.23,-434.08 475.23,-428.08 481.23,-422.08 487.23,-422.08 487.23,-422.08 750.39,-422.08 750.39,-422.08 756.39,-422.08 762.39,-428.08 762.39,-434.08 762.39,-434.08 762.39,-448.96 762.39,-448.96 762.39,-454.96 756.39,-460.96 750.39,-460.96"/>
+<text xml:space="preserve" text-anchor="start" x="482.43" y="-443.92" font-family="Arial" font-size="12.00">FBO: Xử lý chứng từ trả hàng/điều chỉnh HĐBH</text>
+<text xml:space="preserve" text-anchor="start" x="511.08" y="-429.52" font-family="Arial" font-size="12.00">và nghiệp vụ tồn theo tình trạng hàng</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g id="edge8" class="edge">
+<title>H&#45;&gt;I</title>
+<path fill="none" stroke="#657384" d="M618.81,-486.26C618.81,-480.93 618.81,-474.93 618.81,-469.12"/>
+<polygon fill="#657384" stroke="#657384" points="621.08,-469.42 618.81,-462.92 616.53,-469.42 621.08,-469.42"/>
+</g>
+<!-- J -->
+<g id="node10" class="node">
+<title>J</title>
+<polygon fill="#eef2f5" stroke="#485666" points="618.81,-405.08 471.65,-366.2 618.81,-327.32 765.96,-366.2 618.81,-405.08"/>
+<text xml:space="preserve" text-anchor="start" x="560.45" y="-368.6" font-family="Arial" font-size="12.00">Hàng được xác nhận</text>
+<text xml:space="preserve" text-anchor="start" x="552.43" y="-354.2" font-family="Arial" font-size="12.00">quay lại kho bán online?</text>
+</g>
+<!-- I&#45;&gt;J -->
+<g id="edge9" class="edge">
+<title>I&#45;&gt;J</title>
+<path fill="none" stroke="#657384" d="M618.81,-421.64C618.81,-418.98 618.81,-416.15 618.81,-413.24"/>
+<polygon fill="#657384" stroke="#657384" points="621.08,-413.42 618.81,-406.92 616.53,-413.42 621.08,-413.42"/>
+</g>
+<!-- K -->
+<g id="node11" class="node">
+<title>K</title>
+<path fill="#ffffff" stroke="#485666" d="M612.05,-297.88C612.05,-297.88 423.57,-297.88 423.57,-297.88 417.57,-297.88 411.57,-291.88 411.57,-285.88 411.57,-285.88 411.57,-273.88 411.57,-273.88 411.57,-267.88 417.57,-261.88 423.57,-261.88 423.57,-261.88 612.05,-261.88 612.05,-261.88 618.05,-261.88 624.05,-267.88 624.05,-273.88 624.05,-273.88 624.05,-285.88 624.05,-285.88 624.05,-291.88 618.05,-297.88 612.05,-297.88"/>
+<text xml:space="preserve" text-anchor="start" x="418.77" y="-275.08" font-family="Arial" font-size="12.00">FBO: Tăng tồn bán được tương ứng</text>
+</g>
+<!-- J&#45;&gt;K -->
+<g id="edge10" class="edge">
+<title>J&#45;&gt;K</title>
+<path fill="none" stroke="#657384" d="M584.05,-336.18C571.12,-325.39 556.67,-313.32 544.57,-303.22"/>
+<polygon fill="#657384" stroke="#657384" points="546.09,-301.53 539.64,-299.11 543.17,-305.02 546.09,-301.53"/>
+<text xml:space="preserve" text-anchor="middle" x="568.65" y="-310.32" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- L -->
+<g id="node12" class="node">
+<title>L</title>
+<path fill="#ffffff" stroke="#485666" d="M787.72,-299.32C787.72,-299.32 653.89,-299.32 653.89,-299.32 647.89,-299.32 641.89,-293.32 641.89,-287.32 641.89,-287.32 641.89,-272.44 641.89,-272.44 641.89,-266.44 647.89,-260.44 653.89,-260.44 653.89,-260.44 787.72,-260.44 787.72,-260.44 793.72,-260.44 799.72,-266.44 799.72,-272.44 799.72,-272.44 799.72,-287.32 799.72,-287.32 799.72,-293.32 793.72,-299.32 787.72,-299.32"/>
+<text xml:space="preserve" text-anchor="start" x="649.09" y="-282.28" font-family="Arial" font-size="12.00">Không tăng tồn bán online</text>
+<text xml:space="preserve" text-anchor="start" x="654.11" y="-267.88" font-family="Arial" font-size="12.00">chỉ vì có yêu cầu hoàn</text>
+</g>
+<!-- J&#45;&gt;L -->
+<g id="edge11" class="edge">
+<title>J&#45;&gt;L</title>
+<path fill="none" stroke="#657384" d="M653.91,-336.18C666.38,-325.88 680.25,-314.41 692.11,-304.6"/>
+<polygon fill="#657384" stroke="#657384" points="693.39,-306.5 696.95,-300.6 690.49,-302.99 693.39,-306.5"/>
+<text xml:space="preserve" text-anchor="middle" x="702.27" y="-310.32" font-family="Arial" font-size="10.00">Không</text>
+</g>
+<!-- M -->
+<g id="node13" class="node">
+<title>M</title>
+<polygon fill="#eef2f5" stroke="#485666" points="618.81,-243.44 513.6,-225.44 618.81,-207.44 724.01,-225.44 618.81,-243.44"/>
+<text xml:space="preserve" text-anchor="start" x="571.46" y="-220.64" font-family="Arial" font-size="12.00">Đã có HĐĐT gốc?</text>
+</g>
+<!-- K&#45;&gt;M -->
+<g id="edge12" class="edge">
+<title>K&#45;&gt;M</title>
+<path fill="none" stroke="#657384" d="M551.44,-261.42C562.84,-255.5 575.55,-248.9 586.82,-243.05"/>
+<polygon fill="#657384" stroke="#657384" points="587.57,-245.22 592.29,-240.21 585.47,-241.19 587.57,-245.22"/>
+</g>
+<!-- L&#45;&gt;M -->
+<g id="edge13" class="edge">
+<title>L&#45;&gt;M</title>
+<path fill="none" stroke="#657384" d="M683.98,-259.95C673.23,-254.42 661.56,-248.42 651.1,-243.04"/>
+<polygon fill="#657384" stroke="#657384" points="652.25,-241.08 645.43,-240.13 650.17,-245.12 652.25,-241.08"/>
+</g>
+<!-- N -->
+<g id="node14" class="node">
+<title>N</title>
+<path fill="#ffffff" stroke="#485666" d="M610.05,-179.44C610.05,-179.44 389.57,-179.44 389.57,-179.44 383.57,-179.44 377.57,-173.44 377.57,-167.44 377.57,-167.44 377.57,-152.56 377.57,-152.56 377.57,-146.56 383.57,-140.56 389.57,-140.56 389.57,-140.56 610.05,-140.56 610.05,-140.56 616.05,-140.56 622.05,-146.56 622.05,-152.56 622.05,-152.56 622.05,-167.44 622.05,-167.44 622.05,-173.44 616.05,-179.44 610.05,-179.44"/>
+<text xml:space="preserve" text-anchor="start" x="384.77" y="-162.4" font-family="Arial" font-size="12.00">FBO / Portal: Lập HĐĐT điều chỉnh giảm</text>
+<text xml:space="preserve" text-anchor="start" x="432.44" y="-148" font-family="Arial" font-size="12.00">tham chiếu hóa đơn gốc</text>
+</g>
+<!-- M&#45;&gt;N -->
+<g id="edge14" class="edge">
+<title>M&#45;&gt;N</title>
+<path fill="none" stroke="#657384" d="M594.15,-211.3C579.13,-203.29 559.52,-192.84 542.08,-183.54"/>
+<polygon fill="#657384" stroke="#657384" points="543.41,-181.67 536.6,-180.62 541.27,-185.68 543.41,-181.67"/>
+<text xml:space="preserve" text-anchor="middle" x="576.36" y="-190.44" font-family="Arial" font-size="10.00">Có</text>
+</g>
+<!-- O -->
+<g id="node15" class="node">
+<title>O</title>
+<path fill="#ffffff" stroke="#485666" d="M823.38,-179.44C823.38,-179.44 652.24,-179.44 652.24,-179.44 646.24,-179.44 640.24,-173.44 640.24,-167.44 640.24,-167.44 640.24,-152.56 640.24,-152.56 640.24,-146.56 646.24,-140.56 652.24,-140.56 652.24,-140.56 823.38,-140.56 823.38,-140.56 829.38,-140.56 835.38,-146.56 835.38,-152.56 835.38,-152.56 835.38,-167.44 835.38,-167.44 835.38,-173.44 829.38,-179.44 823.38,-179.44"/>
+<text xml:space="preserve" text-anchor="start" x="647.44" y="-162.4" font-family="Arial" font-size="12.00">Xử lý trình tự chứng từ/hóa đơn</text>
+<text xml:space="preserve" text-anchor="start" x="702.78" y="-148" font-family="Arial" font-size="12.00">theo ISS&#45;007</text>
+</g>
+<!-- M&#45;&gt;O -->
+<g id="edge15" class="edge">
+<title>M&#45;&gt;O</title>
+<path fill="none" stroke="#657384" d="M643.47,-211.3C658.49,-203.29 678.09,-192.84 695.53,-183.54"/>
+<polygon fill="#657384" stroke="#657384" points="696.35,-185.68 701.01,-180.62 694.21,-181.67 696.35,-185.68"/>
+<text xml:space="preserve" text-anchor="middle" x="697.38" y="-190.44" font-family="Arial" font-size="10.00">Chưa</text>
+</g>
+<!-- P -->
+<g id="node16" class="node">
+<title>P</title>
+<path fill="#ffffff" stroke="#485666" d="M726.73,-123.56C726.73,-123.56 508.89,-123.56 508.89,-123.56 502.89,-123.56 496.89,-117.56 496.89,-111.56 496.89,-111.56 496.89,-82.28 496.89,-82.28 496.89,-76.28 502.89,-70.28 508.89,-70.28 508.89,-70.28 726.73,-70.28 726.73,-70.28 732.73,-70.28 738.73,-76.28 738.73,-82.28 738.73,-82.28 738.73,-111.56 738.73,-111.56 738.73,-117.56 732.73,-123.56 726.73,-123.56"/>
+<text xml:space="preserve" text-anchor="start" x="504.09" y="-106.52" font-family="Arial" font-size="12.00">FBO: Cung cấp kết quả từng nghiệp vụ</text>
+<text xml:space="preserve" text-anchor="start" x="528.45" y="-92.12" font-family="Arial" font-size="12.00">Tồn mới, số lượng/giá trị hoàn</text>
+<text xml:space="preserve" text-anchor="start" x="535.43" y="-77.72" font-family="Arial" font-size="12.00">và thông tin chứng từ/hóa đơn</text>
+</g>
+<!-- N&#45;&gt;P -->
+<g id="edge16" class="edge">
+<title>N&#45;&gt;P</title>
+<path fill="none" stroke="#657384" d="M536.17,-140.18C543.9,-136.18 552.23,-131.86 560.52,-127.57"/>
+<polygon fill="#657384" stroke="#657384" points="561.39,-129.69 566.12,-124.68 559.3,-125.65 561.39,-129.69"/>
+</g>
+<!-- O&#45;&gt;P -->
+<g id="edge17" class="edge">
+<title>O&#45;&gt;P</title>
+<path fill="none" stroke="#657384" d="M700.83,-140.18C692.97,-136.18 684.49,-131.86 676.07,-127.57"/>
+<polygon fill="#657384" stroke="#657384" points="677.18,-125.59 670.36,-124.67 675.12,-129.64 677.18,-125.59"/>
+</g>
+<!-- Q -->
+<g id="node17" class="node">
+<title>Q</title>
+<path fill="#ffffff" stroke="#485666" d="M737.4,-53.28C737.4,-53.28 498.22,-53.28 498.22,-53.28 492.22,-53.28 486.22,-47.28 486.22,-41.28 486.22,-41.28 486.22,-12 486.22,-12 486.22,-6 492.22,0 498.22,0 498.22,0 737.4,0 737.4,0 743.4,0 749.4,-6 749.4,-12 749.4,-12 749.4,-41.28 749.4,-41.28 749.4,-47.28 743.4,-53.28 737.4,-53.28"/>
+<text xml:space="preserve" text-anchor="start" x="513.1" y="-36.24" font-family="Arial" font-size="12.00">Website: Cập nhật theo kết quả FBO</text>
+<text xml:space="preserve" text-anchor="start" x="493.42" y="-21.84" font-family="Arial" font-size="12.00">Lưu lịch sử hoàn, liên kết chứng từ/hóa đơn</text>
+<text xml:space="preserve" text-anchor="start" x="499.09" y="-7.44" font-family="Arial" font-size="12.00">Theo dõi phần chưa hoàn tất để xử lý tiếp</text>
+</g>
+<!-- P&#45;&gt;Q -->
+<g id="edge18" class="edge">
+<title>P&#45;&gt;Q</title>
+<path fill="none" stroke="#657384" d="M617.81,-70.11C617.81,-67.22 617.81,-64.24 617.81,-61.27"/>
+<polygon fill="#657384" stroke="#657384" points="620.08,-61.5 617.81,-55 615.53,-61.5 620.08,-61.5"/>
+</g>
+</g>
+</svg>
+</div>
+
+
+<p>Với hàng đã giao, việc tăng tồn bán được phụ thuộc kết quả nhận và kiểm tra hàng; với hàng chưa giao, FBO xử lý đảo giao dịch theo tình trạng thực tế. Việc thực hiện hoàn tiền thuộc quy trình ngoài phạm vi dự án này.</p>
+<p>Hoàn một phần và toàn bộ dùng chung cơ chế, khác số lượng yêu cầu. Mỗi lần hoàn được theo dõi riêng và liên kết với đơn gốc. Trường hợp chưa có HĐĐT gốc, thứ tự xử lý chứng từ/hóa đơn cần được phân tích; không mặc định có thể lập hóa đơn điều chỉnh ngay.</p>
+<h3>7.5. Ví dụ biến động tồn</h3>
+<p>Ví dụ một mặt hàng, cùng phạm vi kho, không có biến động từ kênh khác:</p>
+<table>
+<thead>
+<tr>
+<th>Sự kiện</th>
+<th align="right">Tồn thực tế</th>
+<th align="right">Tồn bị giữ</th>
+<th align="right">Tồn khả dụng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ban đầu</td>
+<td align="right">10</td>
+<td align="right">0</td>
+<td align="right">10</td>
+</tr>
+<tr>
+<td>Khách đặt 3, đơn Chờ thanh toán</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>Nhánh A: đơn bị hủy trước thanh toán</td>
+<td align="right">10</td>
+<td align="right">0</td>
+<td align="right">10</td>
+</tr>
+<tr>
+<td>Nhánh B: đã trả tiền, Chờ đồng bộ FBO; FBO chưa ghi nhận bán</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>Nhánh B: đồng bộ lỗi trước khi FBO ghi nhận bán</td>
+<td align="right">10</td>
+<td align="right">3</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>Nhánh B: thanh toán, FAST ghi nhận bán 3 và Website hoàn tất cập nhật</td>
+<td align="right">7</td>
+<td align="right">0</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>Sau nhánh B: hoàn 2, FAST xác nhận nhập lại kho bán</td>
+<td align="right">9</td>
+<td align="right">0</td>
+<td align="right">9</td>
+</tr>
+</tbody></table>
+<p>Nhánh A và B là hai tình huống thay thế nhau. Các dòng chờ/lỗi minh họa khi FBO chưa trừ tồn; nếu FBO đã xử lý nhưng mất phản hồi, cần đối chiếu kết quả thực tế, không mặc định tồn vẫn là 10. Nếu hàng hoàn không đủ điều kiện bán lại thì việc hoàn tiền không làm tăng tồn khả dụng của Website.</p>
+<h2>8. Phân chia trách nhiệm</h2>
+<table>
+<thead>
+<tr>
+<th>Nghiệp vụ</th>
+<th>Website</th>
+<th>FAST / Portal</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Quản lý và cung cấp tồn thực tế</td>
+<td>Nhận, lưu dữ liệu đồng bộ</td>
+<td>Quản lý, cung cấp</td>
+</tr>
+<tr>
+<td>Tính/hiển thị tồn khả dụng</td>
+<td>Chủ trì</td>
+<td>Cung cấp tồn thực tế</td>
+</tr>
+<tr>
+<td>Tạo đơn, kiểm tra và giữ hàng</td>
+<td>Chủ trì</td>
+<td>Không giữ hàng theo luồng mục tiêu</td>
+</tr>
+<tr>
+<td>Hết hạn/hủy trước thanh toán</td>
+<td>Hủy đơn, nhả tồn dựa trên kết quả xác nhận thanh toán có sẵn</td>
+<td>Không đảo tồn thực tế</td>
+</tr>
+<tr>
+<td>Sử dụng kết quả xác nhận thanh toán</td>
+<td>Lấy kết quả từ chức năng Website đã có để bắt đầu đồng bộ đơn</td>
+<td>Nhận đơn đã được Website xác nhận thanh toán</td>
+</tr>
+<tr>
+<td>Đơn đã trả tiền, chờ đồng bộ</td>
+<td>Phân biệt trạng thái, tiếp tục giữ hàng, theo dõi lỗi và xử lý tiếp</td>
+<td>Cung cấp kết quả ghi nhận bán để đối chiếu, tránh xử lý trùng</td>
+</tr>
+<tr>
+<td>HĐBH và trừ tồn</td>
+<td>Gửi đơn, nhận kết quả</td>
+<td>Chủ trì</td>
+</tr>
+<tr>
+<td>HĐĐT MTT</td>
+<td>Nhận và liên kết thông tin</td>
+<td>Khởi tạo/phát hành, cung cấp kết quả</td>
+</tr>
+<tr>
+<td>Tiếp nhận hủy/hoàn sau thanh toán</td>
+<td>Chủ trì tiếp nhận</td>
+<td>Xử lý nghiệp vụ liên quan</td>
+</tr>
+<tr>
+<td>Điều chỉnh chứng từ, nhập lại/đảo tồn</td>
+<td>Nhận kết quả, cập nhật tồn</td>
+<td>Chủ trì theo tình trạng hàng</td>
+</tr>
+<tr>
+<td>HĐĐT điều chỉnh giảm</td>
+<td>Nhận và liên kết thông tin</td>
+<td>Chủ trì</td>
+</tr>
+<tr>
+<td>Theo dõi lỗi và xử lý lại</td>
+<td>Theo dõi kết quả đồng bộ Website - FBO</td>
+<td>Cung cấp kết quả xử lý FAST</td>
+</tr>
+</tbody></table>
+<h2>9. Tiêu chí nghiệm thu nghiệp vụ</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Tiêu chí</th>
+<th>Tham chiếu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AC-001</td>
+<td>Website tính đúng tồn khả dụng theo tồn FAST và lượng giữ của cả đơn Chờ thanh toán lẫn Đã thanh toán; thay đổi tồn nhận từ FAST được phản ánh theo mức thời gian thống nhất trong SRS</td>
+<td>INV-BR-001, INV-BR-002, ORD-BR-007</td>
+</tr>
+<tr>
+<td>AC-002</td>
+<td>Khi nhiều khách đồng thời đặt lượng hàng cuối cùng, tổng lượng được chấp nhận không vượt tồn khả dụng</td>
+<td>ORD-BR-001</td>
+</tr>
+<tr>
+<td>AC-003</td>
+<td>Đơn chưa thanh toán hết hạn T hoặc bị hủy được nhả tồn; thao tác này không thay đổi tồn thực tế tại FAST</td>
+<td>ORD-BR-002, ORD-BR-004</td>
+</tr>
+<tr>
+<td>AC-004</td>
+<td>Một đơn thanh toán thành công được ghi nhận bán một lần tại FAST; tồn thực tế và tồn giữ giảm cùng số lượng, không làm thay đổi tồn khả dụng nếu không có biến động khác</td>
+<td>ORD-BR-003, INT-BR-001</td>
+</tr>
+<tr>
+<td>AC-005</td>
+<td>Website nhận và liên kết đủ thông tin HĐĐT MTT với đơn; nhận diện được hóa đơn chưa phát hành thành công</td>
+<td>INVH-BR-001, INT-BR-002</td>
+</tr>
+<tr>
+<td>AC-006</td>
+<td>Hủy/hoàn một phần, toàn bộ và nhiều lần được theo dõi theo số lượng; không xử lý vượt lượng đã bán; giữ lịch sử đơn gốc</td>
+<td>ORD-BR-005, ORD-BR-006</td>
+</tr>
+<tr>
+<td>AC-007</td>
+<td>Hàng hoàn đủ điều kiện bán chỉ làm tăng tồn khả dụng sau xác nhận FAST; hàng lỗi không được cộng vào tồn bán online chỉ vì đã hoàn tiền</td>
+<td>INV-BR-003</td>
+</tr>
+<tr>
+<td>AC-008</td>
+<td>Giao dịch hoàn có hóa đơn gốc được liên kết với HĐĐT điều chỉnh giảm và kết quả xử lý số lượng, giá trị hàng hoàn từ FBO</td>
+<td>INVH-BR-002, ORD-BR-006</td>
+</tr>
+<tr>
+<td>AC-009</td>
+<td>Gửi lại cùng giao dịch bán/hoàn sau lỗi hoặc mất phản hồi không tạo thêm chứng từ, hóa đơn hay thay đổi tồn lần nữa</td>
+<td>INT-BR-001</td>
+</tr>
+<tr>
+<td>AC-010</td>
+<td>Khi thanh toán thành công nhưng FBO chưa xử lý/lỗi/mất phản hồi, đơn là Đã thanh toán, vẫn giữ hàng và không tự hủy khi vượt T; khách không bị yêu cầu thanh toán lại</td>
+<td>ORD-BR-007, ORD-BR-002</td>
+</tr>
+<tr>
+<td>AC-011</td>
+<td>Sau đối chiếu hoặc gửi lại thành công, Website chuyển đơn sang Đã xuất HĐ và giải phóng lượng giữ đúng một lần cùng cập nhật tồn; có thể theo dõi lỗi và kết quả xử lý tiếp</td>
+<td>ORD-BR-007, INT-BR-001, INT-BR-002</td>
+</tr>
+<tr>
+<td>AC-012</td>
+<td>FBO đã ghi nhận bán và Website cập nhật tồn thành công nhưng HĐĐT lỗi: đơn vẫn Đã xuất HĐ, không giữ lại hàng hoặc ghi nhận bán lại; phần hóa đơn được theo dõi và xử lý tiếp riêng</td>
+<td>ORD-BR-007, INVH-BR-001</td>
+</tr>
+</tbody></table>
+<p>Kiểm thử luồng đơn đã thanh toán sử dụng kết quả xác nhận có sẵn của Website làm đầu vào; việc xác thực giao dịch tiền và thực hiện hoàn tiền không thuộc nghiệm thu dự án này.</p>
+<p>Các tiêu chí trên là đầu vào cho UAT; test case chi tiết và dữ liệu kiểm thử sẽ được xây dựng theo SRS.</p>
+</body></html>

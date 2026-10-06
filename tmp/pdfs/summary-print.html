@@ -1,0 +1,562 @@
+<!DOCTYPE html><html lang="vi"><meta charset="utf-8"><title>Phương Thảo - Yêu cầu, giải pháp và API</title>
+  <style>
+    @page { size:A4; margin:15mm 14mm 17mm; }
+    * { box-sizing:border-box; }
+    body { font-family:Arial,sans-serif; font-size:10pt; line-height:1.4; color:#25313b; margin:0; }
+    h1 { font-size:23pt; line-height:1.22; color:#224658; margin:0 0 6mm; padding-bottom:5mm; border-bottom:2px solid #386c76; }
+    h2 { font-size:16pt; color:#224658; margin:6mm 0 4mm; break-before:page; break-after:avoid; }
+    h2:first-of-type { break-before:avoid; }
+    h3 { font-size:12pt; color:#224658; margin:5mm 0 3mm; break-after:avoid; }
+    p { margin:0 0 3mm; } ul { padding-left:6mm; } li { margin:1.2mm 0; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; margin:3mm 0 4mm; font-size:9.5pt; }
+    th,td { border:1px solid #bac7ce; padding:2mm; vertical-align:top; overflow-wrap:anywhere; }
+    th { background:#eef4f6; text-align:left; color:#224658; }
+    tr { break-inside:avoid; } thead { display:table-header-group; }
+    td:first-child,th:first-child { width:27%; }
+    tbody tr:nth-child(even) { background:#f8fafb; }
+    code { font-family:Consolas,monospace; font-size:8.6pt; overflow-wrap:anywhere; }
+    pre { background:#f3f6f8; border:1px solid #d9e1e6; padding:3mm; margin:2mm 0 4mm; white-space:pre-wrap; overflow-wrap:anywhere; break-inside:avoid; line-height:1.26; }
+    pre code { font-size:8.5pt; }
+    .diagram { break-inside:avoid; margin:3mm 0 4mm; text-align:center; }
+    .diagram svg { width:100%; height:auto; max-height:213mm; }
+    .new-page { break-before:page; margin-top:0; }
+  </style><body><h1>Yêu cầu, giải pháp và đặc tả API cơ bản - Website Phương Thảo / FBO</h1>
+<p>Ngày cập nhật: 06/10/2026. Cơ sở: BRD PT-BRD-001, phiên bản 1.0 đã chốt trong trao đổi dự án.</p>
+<p>URL, tên trường JSON và mã lỗi dưới đây là đề xuất để hai đội thống nhất triển khai, chưa xác nhận là API hiện có của FAST. <code>{WEBSITE_BASE_URL}</code> và <code>{FBO_BASE_URL}</code> được thay bằng địa chỉ môi trường triển khai.</p>
+<h2>1. Yêu cầu</h2>
+<table>
+<thead>
+<tr>
+<th>Mã BRD</th>
+<th>Yêu cầu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INV-BR-001, INV-BR-002</td>
+<td>Website nhận tồn thực tế từ FBO, tính và hiển thị số lượng hàng khách còn được đặt</td>
+</tr>
+<tr>
+<td>ORD-BR-001</td>
+<td>Khách tự đặt đơn trên Website; không đặt vượt tồn khả dụng, kể cả nhiều khách đặt đồng thời</td>
+</tr>
+<tr>
+<td>ORD-BR-002, ORD-BR-004</td>
+<td>Giữ hàng khi Chờ thanh toán; tự hủy khi quá hạn chưa thanh toán hoặc khi khách hủy và nhả lượng giữ</td>
+</tr>
+<tr>
+<td>ORD-BR-003, ORD-BR-007</td>
+<td>Gửi đơn được Website xác nhận đã thanh toán sang FBO để ghi nhận bán; phân biệt đơn đã trả tiền với đơn FBO đã xử lý xong</td>
+</tr>
+<tr>
+<td>INVH-BR-001</td>
+<td>FBO khởi tạo/phát hành HĐĐT MTT qua Portal và cung cấp thông tin hóa đơn cho Website</td>
+</tr>
+<tr>
+<td>ORD-BR-005, ORD-BR-006, INV-BR-003, INVH-BR-002</td>
+<td>Hủy/hoàn sau thanh toán, một phần hoặc toàn bộ; xử lý chứng từ, tồn, HĐĐT điều chỉnh giảm và giữ lịch sử</td>
+</tr>
+<tr>
+<td>INT-BR-001, INT-BR-002</td>
+<td>Theo dõi kết quả, đối chiếu/gửi lại khi lỗi mà không tạo chứng từ, hóa đơn hoặc thay đổi tồn trùng</td>
+</tr>
+</tbody></table>
+<p>Website đã có chức năng xác nhận thanh toán. Tích hợp sử dụng kết quả đó làm đầu vào; xây dựng cơ chế thanh toán và thực hiện hoàn tiền nằm ngoài phạm vi.</p>
+<h2>2. Giải pháp</h2>
+<h3>2.1. Cập nhật tồn thực tế và tính tồn khả dụng</h3>
+<p><strong>Website cung cấp API nhận tồn; FBO gọi để cập nhật tồn thực tế.</strong> Một lần gửi có thể gồm nhiều mã hàng thuộc nhiều kho. Website cập nhật số tồn của từng cặp mã kho/mã hàng, rồi tính lại tồn khả dụng.</p>
+<p><strong>Tồn khả dụng = Tồn thực tế - Tồn bị giữ.</strong> Tồn bị giữ gồm lượng hàng trên các đơn Chờ thanh toán và Đã thanh toán chưa hoàn tất cập nhật bán/tồn. Website quản lý lượng giữ; FBO quản lý tồn thực tế.</p>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant FBO as PMKT FBO
+    participant WEB as Website
+    actor KH as Khách hàng
+    FBO-&gt;&gt;WEB: INT-API-001: Gửi danh sách tồn thực tế&lt;br/&gt;Mã kho, mã hàng, số lượng
+    WEB-&gt;&gt;WEB: Cập nhật tồn thực tế theo hàng/kho&lt;br/&gt;Tính lại tồn khả dụng
+    WEB--&gt;&gt;FBO: Kết quả cập nhật, mã và mô tả lỗi nếu có
+    WEB--&gt;&gt;KH: Hiển thị tồn khả dụng mới</pre></div>
+<p>FBO gửi tồn ban đầu và cập nhật khi tồn thay đổi, bao gồm thay đổi ngoài luồng đơn Website. Tần suất, thứ tự cập nhật và đối chiếu lượng giữ với giao dịch bán được đặc tả trong SRS theo ISS-004 của BRD.</p>
+<h3>2.2. Đặt hàng, giữ hàng và hủy trước thanh toán</h3>
+<p>Website kiểm tra tồn, tạo đơn Chờ thanh toán và giữ hàng. Khi hủy hoặc quá T phút chưa thanh toán, Website nhả lượng giữ. Không gọi API giữ/nhả tồn tại FBO.</p>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    actor KH as Khách hàng
+    participant WEB as Website
+    KH-&gt;&gt;WEB: Đặt hàng
+    WEB-&gt;&gt;WEB: Kiểm tra tồn khả dụng
+    alt Đủ hàng
+        WEB-&gt;&gt;WEB: Tạo đơn Chờ thanh toán&lt;br/&gt;Giữ hàng và tính lại tồn khả dụng
+        WEB--&gt;&gt;KH: Xác nhận tạo đơn
+        alt Hủy hoặc hết hạn khi chưa thanh toán
+            WEB-&gt;&gt;WEB: Chuyển Hủy/Hết hạn&lt;br/&gt;Nhả lượng giữ, tính lại tồn khả dụng
+        else Website đã xác nhận thanh toán
+            WEB-&gt;&gt;WEB: Chuyển Đã thanh toán&lt;br/&gt;Tiếp tục giữ hàng, không tự hủy theo T
+        end
+    else Không đủ hàng
+        WEB--&gt;&gt;KH: Thông báo không đủ tồn
+    end</pre></div>
+<p>Giá trị T chốt trong SRS. Xác nhận thanh toán do chức năng Website có sẵn xử lý.</p>
+<h3>2.3. Đồng bộ đơn đã thanh toán và HĐĐT MTT</h3>
+<p>Website gửi đơn sang FBO. FBO tạo HĐBH, trừ tồn và phối hợp Portal xử lý HĐĐT. Website chỉ chuyển Đã xuất HĐ khi xác nhận bán thành công và cập nhật tồn, giải phóng lượng giữ tương ứng. Kết quả HĐĐT được theo dõi riêng.</p>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant WEB as Website
+    participant FBO as PMKT FBO
+    participant PORTAL as Portal HĐĐT FAST
+    Note over WEB: Đơn Đã thanh toán theo kết quả có sẵn&lt;br/&gt;Tiếp tục giữ hàng
+    WEB-&gt;&gt;FBO: INT-API-002: Gửi đơn đã thanh toán
+    FBO-&gt;&gt;FBO: Tạo HĐBH và trừ tồn đúng một lần
+    FBO--&gt;&gt;WEB: Kết quả tiếp nhận/xử lý, HĐBH và tồn nếu có
+    opt Chưa đủ kết quả hoặc Website mất phản hồi
+        WEB-&gt;&gt;FBO: INT-API-003: Tra cứu kết quả theo giao dịch
+        FBO--&gt;&gt;WEB: Kết quả bán/tồn và HĐĐT hiện tại
+    end
+    alt Bán thành công và nhận đủ kết quả tồn
+        WEB-&gt;&gt;WEB: Cập nhật tồn và giải phóng lượng giữ&lt;br/&gt;Chuyển Đã xuất HĐ
+    else Chưa xong, lỗi hoặc chưa rõ kết quả
+        WEB-&gt;&gt;WEB: Giữ Đã thanh toán và giữ hàng&lt;br/&gt;Đối chiếu hoặc gửi lại cùng giao dịch
+    end
+    FBO-&gt;&gt;PORTAL: Khởi tạo/phát hành HĐĐT MTT
+    PORTAL--&gt;&gt;FBO: Kết quả và thông tin hóa đơn khi có
+    WEB-&gt;&gt;FBO: INT-API-003: Lấy kết quả HĐĐT mới nhất
+    FBO--&gt;&gt;WEB: Trạng thái và thông tin HĐĐT
+    WEB-&gt;&gt;WEB: Lưu hóa đơn nếu thành công&lt;br/&gt;Theo dõi xử lý tiếp nếu chưa xong/lỗi</pre></div>
+<p>FBO có thể xử lý HĐĐT cùng lúc ghi nhận bán. Lỗi hóa đơn không làm Website ghi nhận bán lại, giữ lại lượng hàng đã bán hoặc quay về Chờ thanh toán. Đã xuất HĐ xác nhận HĐBH/tồn, không mặc định HĐĐT đã phát hành.</p>
+<h3>2.4. Hủy/hoàn sau khi đã ghi nhận bán</h3>
+<p>Website kiểm tra điều kiện và gửi số lượng/giá trị hủy/hoàn. FBO xử lý chứng từ và tồn theo tình trạng hàng; chỉ hàng quay lại kho bán được mới tăng tồn bán online. Khi có HĐĐT gốc, FBO/Portal xử lý HĐĐT điều chỉnh giảm.</p>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    actor KH as Khách hàng
+    participant WEB as Website
+    participant FBO as PMKT FBO
+    participant PORTAL as Portal HĐĐT FAST
+    KH-&gt;&gt;WEB: Yêu cầu hủy/hoàn một phần hoặc toàn bộ
+    WEB-&gt;&gt;WEB: Kiểm tra điều kiện và lượng còn được hoàn
+    WEB-&gt;&gt;FBO: INT-API-003: Đối chiếu giao dịch bán gốc khi cần
+    FBO--&gt;&gt;WEB: Kết quả bán và hóa đơn gốc
+    alt Giao dịch bán gốc đã được xác nhận và đủ điều kiện hoàn
+        WEB-&gt;&gt;FBO: INT-API-004: Gửi yêu cầu hủy/hoàn
+        FBO-&gt;&gt;FBO: Xử lý chứng từ và tồn theo tình trạng hàng&lt;br/&gt;Không xử lý trùng lần hoàn
+        FBO--&gt;&gt;WEB: Kết quả chứng từ/tồn nếu có
+        opt Đã có HĐĐT gốc
+            FBO-&gt;&gt;PORTAL: Phát hành HĐĐT điều chỉnh giảm
+            PORTAL--&gt;&gt;FBO: Kết quả và thông tin hóa đơn điều chỉnh
+        end
+        WEB-&gt;&gt;FBO: INT-API-005: Tra cứu kết quả lần hoàn
+        FBO--&gt;&gt;WEB: Kết quả chứng từ, tồn và hóa đơn điều chỉnh
+        WEB-&gt;&gt;WEB: Cập nhật tồn theo FBO&lt;br/&gt;Lưu lịch sử, theo dõi phần chưa hoàn tất
+    else Chưa bán hoặc chưa rõ kết quả
+        Note over WEB,FBO: Xử lý theo ISS-007 tại mục 10.2 BRD&lt;br/&gt;Không tự nhả tồn hoặc tạo chứng từ hoàn
+    else Không đủ điều kiện hoàn
+        WEB--&gt;&gt;KH: Thông báo không chấp nhận hủy/hoàn
+    end</pre></div>
+<p>Hoàn một phần/toàn bộ dùng cùng cơ chế, khác số lượng. Với giao dịch bán hoặc HĐĐT gốc chưa hoàn tất, áp dụng ISS-007 trong BRD, không mặc định có thể lập hóa đơn điều chỉnh ngay.</p>
+<h2>3. Đặc tả API cơ bản</h2>
+<h3>3.1. Quy ước chung</h3>
+<p>Tất cả API dùng JSON và token trong header:</p>
+<pre><code class="language-http">Content-Type: application/json
+Authorization: Bearer &lt;token&gt;
+</code></pre>
+<p>Website cấp token cho FBO khi gọi API Website; FBO cấp token cho Website khi gọi API FBO. Không truyền token trong body/URL.</p>
+<p>Response chung: <code>success</code> (thành công hay không), <code>error_code</code>, <code>error_message</code> và <code>data</code> nếu có. Với API gửi giao dịch, <code>success: true</code> xác nhận tiếp nhận hợp lệ; trạng thái trong <code>data</code> mới xác nhận nghiệp vụ đã hoàn tất.</p>
+<p><strong>Response lỗi chung mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;error_code&quot;: &quot;INVALID_REQUEST&quot;,
+  &quot;error_message&quot;: &quot;Du lieu gui len khong hop le&quot;,
+  &quot;data&quot;: null
+}
+</code></pre>
+<p>Mã lỗi dự kiến: <code>UNAUTHORIZED</code>, <code>INVALID_REQUEST</code>, <code>WAREHOUSE_NOT_FOUND</code>, <code>PRODUCT_NOT_FOUND</code>, <code>REQUEST_NOT_FOUND</code>, <code>REQUEST_CONFLICT</code> (cùng mã yêu cầu nhưng khác nội dung), <code>INTERNAL_ERROR</code>. Danh mục và HTTP status chốt trong SRS. Thông báo JSON mẫu dùng chữ không dấu.</p>
+<h3>3.2. INT-API-001 - Cập nhật tồn thực tế</h3>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Đặc tả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hệ thống phụ trách</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Hệ thống gọi</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Mục đích</td>
+<td>Cập nhật tồn kho thực tế từ FBO cho Website</td>
+</tr>
+<tr>
+<td>URL đề xuất</td>
+<td><code>{WEBSITE_BASE_URL}/api/v1/integration/inventory/update</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>Authen</td>
+<td>Token do Website cấp, <code>Authorization: Bearer &lt;token&gt;</code></td>
+</tr>
+<tr>
+<td>Request</td>
+<td>JSON gồm danh sách <code>items</code>, mỗi phần tử có <code>warehouse_code</code> (mã kho), <code>product_code</code> (mã hàng), <code>quantity</code> (số lượng tồn thực tế). Hỗ trợ nhiều mã hàng/mã kho một lần</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>JSON thông báo thành công hay không, mã và mô tả lỗi nếu có</td>
+</tr>
+</tbody></table>
+<p><strong>Request mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;items&quot;: [
+    { &quot;warehouse_code&quot;: &quot;ONLINE&quot;, &quot;product_code&quot;: &quot;AO-001&quot;, &quot;quantity&quot;: 100 },
+    { &quot;warehouse_code&quot;: &quot;ONLINE&quot;, &quot;product_code&quot;: &quot;QUAN-001&quot;, &quot;quantity&quot;: 50 },
+    { &quot;warehouse_code&quot;: &quot;KHO-02&quot;, &quot;product_code&quot;: &quot;AO-001&quot;, &quot;quantity&quot;: 20 }
+  ]
+}
+</code></pre>
+<p><strong>Response thành công:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;error_code&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;data&quot;: { &quot;updated_count&quot;: 3 }
+}
+</code></pre>
+<p><strong>Response lỗi ví dụ:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,
+  &quot;error_code&quot;: &quot;PRODUCT_NOT_FOUND&quot;,
+  &quot;error_message&quot;: &quot;Ma hang AO-999 khong ton tai tren Website&quot;,
+  &quot;data&quot;: null
+}
+</code></pre>
+<p><code>quantity</code> là số tồn mới thay thế số tồn thực tế đang lưu, không phải lượng cộng/trừ. Hàng/kho không có trong request giữ nguyên. Đề xuất kiểm tra cả danh sách trước khi cập nhật: một dòng sai thì từ chối cả batch, không cập nhật một phần. Mốc dữ liệu/phiên bản và đối chiếu giao dịch theo ISS-004 cần được bổ sung trong SRS để tránh cập nhật sai thứ tự hoặc tính giảm tồn hai lần.</p>
+<h3>3.3. INT-API-002 - Tiếp nhận đơn đã thanh toán</h3>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Đặc tả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hệ thống phụ trách</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Hệ thống gọi</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Mục đích</td>
+<td>Tiếp nhận đơn Website đã xác nhận thanh toán, tạo HĐBH, trừ tồn và khởi tạo xử lý HĐĐT MTT</td>
+</tr>
+<tr>
+<td>URL đề xuất</td>
+<td><code>{FBO_BASE_URL}/api/v1/integration/sales</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>Authen</td>
+<td>Token do FBO cấp</td>
+</tr>
+<tr>
+<td>Request</td>
+<td>Mã yêu cầu, mã/ngày đơn, mã bộ phận/kho, người mua và thông tin xuất hóa đơn, danh sách dòng hàng và giá trị đơn</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>Kết quả tiếp nhận, trạng thái bán/tồn/HĐĐT riêng, HĐBH, tồn sau bán và thông tin hóa đơn nếu có</td>
+</tr>
+</tbody></table>
+<p><strong>Request mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;request_id&quot;: &quot;SALE-WEB-0001&quot;,
+  &quot;order_code&quot;: &quot;WEB-0001&quot;,
+  &quot;order_date&quot;: &quot;2026-10-06&quot;,
+  &quot;department_code&quot;: &quot;ONLINE&quot;,
+  &quot;warehouse_code&quot;: &quot;ONLINE&quot;,
+  &quot;buyer&quot;: {
+    &quot;name&quot;: &quot;Nguyen Van A&quot;,
+    &quot;phone&quot;: &quot;0900000000&quot;,
+    &quot;address&quot;: &quot;Ha Noi&quot;,
+    &quot;tax_code&quot;: null,
+    &quot;identity_number&quot;: null
+  },
+  &quot;items&quot;: [
+    {
+      &quot;line_id&quot;: &quot;1&quot;,
+      &quot;product_code&quot;: &quot;AO-001&quot;,
+      &quot;unit&quot;: &quot;CAI&quot;,
+      &quot;quantity&quot;: 3,
+      &quot;unit_price&quot;: 100000,
+      &quot;discount_amount&quot;: 0,
+      &quot;tax_amount&quot;: 0,
+      &quot;amount&quot;: 300000
+    }
+  ],
+  &quot;total_amount&quot;: 300000
+}
+</code></pre>
+<p><strong>Response mẫu: bán hoàn tất, HĐĐT còn chờ:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;error_code&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;data&quot;: {
+    &quot;request_id&quot;: &quot;SALE-WEB-0001&quot;,
+    &quot;order_code&quot;: &quot;WEB-0001&quot;,
+    &quot;sales_status&quot;: &quot;SUCCESS&quot;,
+    &quot;inventory_status&quot;: &quot;SUCCESS&quot;,
+    &quot;sales_document_code&quot;: &quot;HDBH-0001&quot;,
+    &quot;inventory&quot;: [
+      { &quot;warehouse_code&quot;: &quot;ONLINE&quot;, &quot;product_code&quot;: &quot;AO-001&quot;, &quot;quantity&quot;: 97 }
+    ],
+    &quot;invoice_status&quot;: &quot;PENDING&quot;,
+    &quot;invoice&quot;: null
+  }
+}
+</code></pre>
+<p>Nếu mới tiếp nhận, trạng thái bán/tồn là <code>PENDING</code>, thông tin chưa có là <code>null</code> hoặc danh sách rỗng. Website giữ Đã thanh toán và giữ hàng đến khi đủ kết quả bán/tồn. Gửi lại cùng giao dịch giữ nguyên <code>request_id</code> và nội dung. <code>amount</code>/<code>total_amount</code> trong ví dụ là giá trị sau chiết khấu, gồm thuế; quy tắc tính và ánh xạ mã khách/nhân viên mặc định chốt trong SRS.</p>
+<h3>3.4. INT-API-003 - Tra cứu kết quả bán và HĐĐT</h3>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Đặc tả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hệ thống phụ trách</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Hệ thống gọi</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Mục đích</td>
+<td>Đối chiếu bán/tồn khi mất phản hồi, theo dõi xử lý và lấy thông tin HĐĐT sau phát hành</td>
+</tr>
+<tr>
+<td>URL đề xuất</td>
+<td><code>{FBO_BASE_URL}/api/v1/integration/sales/status</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>Authen</td>
+<td>Token do FBO cấp</td>
+</tr>
+<tr>
+<td>Request</td>
+<td><code>request_id</code> của giao dịch bán và <code>order_code</code> để đối chiếu</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>Kết quả tra cứu, trạng thái từng nghiệp vụ, thông tin HĐBH, kết quả tồn và HĐĐT nếu có</td>
+</tr>
+</tbody></table>
+<p><strong>Request mẫu:</strong></p>
+<pre><code class="language-json">{ &quot;request_id&quot;: &quot;SALE-WEB-0001&quot;, &quot;order_code&quot;: &quot;WEB-0001&quot; }
+</code></pre>
+<p><strong>Response mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;error_code&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;data&quot;: {
+    &quot;request_id&quot;: &quot;SALE-WEB-0001&quot;,
+    &quot;order_code&quot;: &quot;WEB-0001&quot;,
+    &quot;sales_status&quot;: &quot;SUCCESS&quot;,
+    &quot;inventory_status&quot;: &quot;SUCCESS&quot;,
+    &quot;sales_document_code&quot;: &quot;HDBH-0001&quot;,
+    &quot;invoice_status&quot;: &quot;SUCCESS&quot;,
+    &quot;invoice&quot;: {
+      &quot;invoice_id&quot;: &quot;HDDT-0001&quot;,
+      &quot;invoice_number&quot;: &quot;0000001&quot;,
+      &quot;series&quot;: &quot;&lt;ky_hieu&gt;&quot;,
+      &quot;template&quot;: &quot;&lt;mau_so&gt;&quot;,
+      &quot;lookup_url&quot;: &quot;&lt;link_tra_cuu&gt;&quot;,
+      &quot;lookup_code&quot;: &quot;&lt;ma_tra_cuu&gt;&quot;
+    }
+  }
+}
+</code></pre>
+<p>Tồn sau bán có thể trả bổ sung theo cấu trúc <code>inventory</code> của INT-API-002. Không dùng tồn lịch sử để ghi đè tồn mới hơn. Từng nghiệp vụ có trạng thái <code>PENDING</code>, <code>SUCCESS</code> hoặc <code>FAILED</code>, kèm mã/mô tả lỗi riêng khi thất bại. Tra cứu không tìm thấy trả <code>REQUEST_NOT_FOUND</code>; lỗi tra cứu không chứng minh giao dịch chưa được ghi nhận.</p>
+<h3>3.5. INT-API-004 - Tiếp nhận hủy/hoàn sau ghi nhận bán</h3>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Đặc tả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hệ thống phụ trách</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Hệ thống gọi</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Mục đích</td>
+<td>Xử lý chứng từ hủy/hoàn, tồn và HĐĐT điều chỉnh giảm cho giao dịch bán đã được xác nhận</td>
+</tr>
+<tr>
+<td>URL đề xuất</td>
+<td><code>{FBO_BASE_URL}/api/v1/integration/returns</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>Authen</td>
+<td>Token do FBO cấp</td>
+</tr>
+<tr>
+<td>Request</td>
+<td>Mã yêu cầu hoàn, đơn/HĐBH/HĐĐT gốc nếu có, ngày/lý do, loại hủy/hoàn, dòng hàng và số lượng/giá trị điều chỉnh</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>Kết quả tiếp nhận, trạng thái chứng từ/tồn/HĐĐT điều chỉnh riêng, lượng và giá trị xử lý, tồn mới và hóa đơn nếu có</td>
+</tr>
+</tbody></table>
+<p><strong>Request mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;request_id&quot;: &quot;RETURN-WEB-0001-01&quot;,
+  &quot;order_code&quot;: &quot;WEB-0001&quot;,
+  &quot;sales_document_code&quot;: &quot;HDBH-0001&quot;,
+  &quot;original_invoice_id&quot;: &quot;HDDT-0001&quot;,
+  &quot;return_date&quot;: &quot;2026-10-06&quot;,
+  &quot;type&quot;: &quot;RETURN&quot;,
+  &quot;reason&quot;: &quot;Khach tra lai 1 san pham&quot;,
+  &quot;items&quot;: [
+    {
+      &quot;original_line_id&quot;: &quot;1&quot;,
+      &quot;product_code&quot;: &quot;AO-001&quot;,
+      &quot;quantity&quot;: 1,
+      &quot;discount_amount&quot;: 0,
+      &quot;tax_amount&quot;: 0,
+      &quot;amount&quot;: 100000
+    }
+  ]
+}
+</code></pre>
+<p><strong>Response mẫu: chứng từ/tồn hoàn tất, hóa đơn còn chờ:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;error_code&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;data&quot;: {
+    &quot;request_id&quot;: &quot;RETURN-WEB-0001-01&quot;,
+    &quot;order_code&quot;: &quot;WEB-0001&quot;,
+    &quot;return_status&quot;: &quot;SUCCESS&quot;,
+    &quot;inventory_status&quot;: &quot;SUCCESS&quot;,
+    &quot;return_document_code&quot;: &quot;TRA-0001&quot;,
+    &quot;processed_amount&quot;: 100000,
+    &quot;items&quot;: [
+      { &quot;original_line_id&quot;: &quot;1&quot;, &quot;returned_quantity&quot;: 1, &quot;restocked_quantity&quot;: 1 }
+    ],
+    &quot;inventory&quot;: [
+      { &quot;warehouse_code&quot;: &quot;ONLINE&quot;, &quot;product_code&quot;: &quot;AO-001&quot;, &quot;quantity&quot;: 98 }
+    ],
+    &quot;adjustment_invoice_status&quot;: &quot;PENDING&quot;,
+    &quot;adjustment_invoice&quot;: null
+  }
+}
+</code></pre>
+<p><code>type</code> nhận <code>CANCEL</code> hoặc <code>RETURN</code>. Một phần/toàn bộ dùng cùng API theo số lượng. <code>restocked_quantity</code> do FBO xác nhận theo tình trạng hàng, có thể bằng 0 dù có hàng hoàn. Tổng lượng hoàn không vượt lượng đã bán. Cùng lần hoàn dùng nguyên <code>request_id</code>; lần mới dùng mã mới. Khi bán chưa rõ kết quả, đối chiếu theo ISS-007 trước, không mặc định nhập lại hàng.</p>
+<h3>3.6. INT-API-005 - Tra cứu kết quả hủy/hoàn</h3>
+<table>
+<thead>
+<tr>
+<th>Thuộc tính</th>
+<th>Đặc tả</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hệ thống phụ trách</td>
+<td>FBO</td>
+</tr>
+<tr>
+<td>Hệ thống gọi</td>
+<td>Website</td>
+</tr>
+<tr>
+<td>Mục đích</td>
+<td>Lấy kết quả hủy/hoàn và HĐĐT điều chỉnh, đối chiếu sau mất phản hồi mà không xử lý hoàn/nhập kho lần nữa</td>
+</tr>
+<tr>
+<td>URL đề xuất</td>
+<td><code>{FBO_BASE_URL}/api/v1/integration/returns/status</code></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>Authen</td>
+<td>Token do FBO cấp</td>
+</tr>
+<tr>
+<td>Request</td>
+<td><code>request_id</code> của lần hoàn và <code>order_code</code> để đối chiếu</td>
+</tr>
+<tr>
+<td>Response</td>
+<td>Trạng thái từng nghiệp vụ, chứng từ, số lượng/giá trị xử lý và thông tin hóa đơn điều chỉnh nếu có</td>
+</tr>
+</tbody></table>
+<p><strong>Request mẫu:</strong></p>
+<pre><code class="language-json">{ &quot;request_id&quot;: &quot;RETURN-WEB-0001-01&quot;, &quot;order_code&quot;: &quot;WEB-0001&quot; }
+</code></pre>
+<p><strong>Response mẫu:</strong></p>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;error_code&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;data&quot;: {
+    &quot;request_id&quot;: &quot;RETURN-WEB-0001-01&quot;,
+    &quot;order_code&quot;: &quot;WEB-0001&quot;,
+    &quot;return_status&quot;: &quot;SUCCESS&quot;,
+    &quot;inventory_status&quot;: &quot;SUCCESS&quot;,
+    &quot;return_document_code&quot;: &quot;TRA-0001&quot;,
+    &quot;processed_amount&quot;: 100000,
+    &quot;items&quot;: [
+      { &quot;original_line_id&quot;: &quot;1&quot;, &quot;returned_quantity&quot;: 1, &quot;restocked_quantity&quot;: 1 }
+    ],
+    &quot;adjustment_invoice_status&quot;: &quot;SUCCESS&quot;,
+    &quot;adjustment_invoice&quot;: {
+      &quot;invoice_id&quot;: &quot;HDDT-DC-0001&quot;,
+      &quot;original_invoice_id&quot;: &quot;HDDT-0001&quot;,
+      &quot;invoice_number&quot;: &quot;0000002&quot;,
+      &quot;series&quot;: &quot;&lt;ky_hieu&gt;&quot;,
+      &quot;template&quot;: &quot;&lt;mau_so&gt;&quot;,
+      &quot;lookup_url&quot;: &quot;&lt;link_tra_cuu&gt;&quot;,
+      &quot;lookup_code&quot;: &quot;&lt;ma_tra_cuu&gt;&quot;
+    }
+  }
+}
+</code></pre>
+<p>Tồn có thể trả bổ sung theo cấu trúc INT-API-004, có kiểm soát mốc dữ liệu. Phần chưa hoàn tất/thất bại trả trạng thái và lỗi riêng, không mặc định mọi bước thành công chỉ vì tra cứu trả <code>success: true</code>.</p>
+<h3>3.7. Nội dung chốt tiếp trong SRS</h3>
+<ul>
+<li>URL thực tế, ánh xạ mã hàng/kho/đơn vị tính, trường bắt buộc, giới hạn batch, HTTP status và lỗi từng nghiệp vụ.</li>
+<li>Mốc dữ liệu và đối chiếu tồn với kết quả bán theo ISS-004, kể cả FBO gửi tồn trước phản hồi đơn.</li>
+<li>Cách dừng giao dịch bán chưa ghi nhận theo ISS-007. Chưa xác nhận FBO có API này, không tự nhả lượng giữ khi giao dịch bán còn có thể tiếp tục xử lý.</li>
+<li>Cách FBO/Portal đối chiếu, xử lý tiếp HĐĐT lỗi; chưa mặc định Website gọi API Portal trực tiếp.</li>
+</ul>
+
+  <script type="module">
+    import mermaid from '/node_modules/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',fontFamily:'Arial',themeVariables:{fontFamily:'Arial',fontSize:'16px',primaryColor:'#edf4f7',primaryTextColor:'#25313b',primaryBorderColor:'#547184',lineColor:'#657b8a',noteBkgColor:'#f6f3e7',noteBorderColor:'#b4a875',actorBkg:'#eaf2f6',actorBorder:'#547184',actorTextColor:'#25313b',signalTextColor:'#25313b',labelBoxBkgColor:'#f3f6f8',labelBoxBorderColor:'#b6c5ce'},sequence:{useMaxWidth:false,mirrorActors:false,wrap:true,wrapPadding:8,width:220,height:45,actorMargin:20,messageMargin:15,noteMargin:6,actorFontSize:16,messageFontSize:16,noteFontSize:15,diagramMarginX:8,diagramMarginY:8}});
+    try { await mermaid.run({querySelector:'.mermaid'}); await document.fonts.ready; window.diagramsReady=true; } catch(error) { window.diagramError=String(error); }
+  </script></body></html>
