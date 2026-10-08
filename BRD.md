@@ -5,10 +5,10 @@
 | Thuộc tính | Nội dung |
 |---|---|
 | Mã tài liệu | PT-BRD-001 |
-| Phiên bản | 1.0 |
-| Ngày cập nhật | 06/10/2026 |
-| Trạng thái | Draft - Chưa phê duyệt |
-| Phạm vi | Tồn kho, đơn hàng, đồng bộ đơn đã được Website xác nhận thanh toán, hủy/hoàn hàng và hóa đơn điện tử |
+| Phiên bản | 1.2 |
+| Ngày cập nhật | 08/10/2026 |
+| Trạng thái | Bản cập nhật theo yêu cầu mới, chờ chốt thay đổi |
+| Phạm vi | Tồn kho, giữ phần chưa giao, giao hàng nhiều lần, HĐBH/HĐĐT theo lần giao và hoàn hàng theo lần giao |
 | Tài liệu tiếp nối | SRS (đặc tả chức năng và API), UAT Checklist, User Guide |
 
 ### 1.1. Nguồn yêu cầu
@@ -16,384 +16,286 @@
 | Mã nguồn | Nguồn | Cách sử dụng |
 |---|---|---|
 | SRC-001 | Chị Thủy | Nhu cầu kinh doanh, quy hoạch tài liệu và quy ước truy vết |
-| SRC-002 | Chị Thủy | Yêu cầu cập nhật về Chờ thanh toán, Đã thanh toán, giữ/nhả tồn và hủy/hoàn sau thanh toán |
-| SRC-003 | Chị Thủy | Tài liệu giải pháp FAST hiện có; dùng để đối chiếu phạm vi và phát hiện khác biệt |
+| SRC-002 | Chị Thủy | Các trao đổi nghiệp vụ tồn kho, đơn hàng và hủy/hoàn |
+| SRC-003 | Chị Thủy | Tài liệu giải pháp FAST hiện có, dùng đối chiếu phạm vi/khả năng đáp ứng |
+| SRC-004 | Yêu cầu cập nhật trong chat ngày 08/10/2026 | Trạng thái theo giao hàng, giữ phần chưa giao, hóa đơn theo từng lần giao và hoàn đúng lần giao |
+| SRC-005 | Yêu cầu cập nhật trong chat ngày 08/10/2026 | FBO chủ động đẩy tồn kho, kết quả HĐĐT MTT và hóa đơn điều chỉnh khi có thông tin mới |
 
-BRD này ghi nhận yêu cầu mới nhất của người yêu cầu. Những giải pháp do trợ lý đề xuất trong cuộc trao đổi được ghi là định hướng hoặc nội dung cần phân tích, không mặc định là yêu cầu đã được phê duyệt. Chi tiết API, kỹ thuật đồng bộ và thiết kế xử lý lỗi được phát triển trong SRS.
+Phiên bản 1.1 thay thế mô hình ghi nhận bán ngay khi thanh toán của phiên bản 1.0. Xác nhận đã thanh toán chỉ làm đơn đủ điều kiện giữ/giao hàng; từng lần giao mới là mốc gửi FBO để ghi nhận bán, trừ tồn và phát hành HĐĐT MTT. Chi tiết kỹ thuật được phát triển trong SRS.
 
 ### 1.2. Quy ước đánh mã
 
-Mã yêu cầu có dạng `<Module>-BR-<Số thứ tự>`; mã quy tắc nghiệp vụ có dạng `<Module>-BRU-<Số thứ tự>`. Module: `INV` (tồn kho), `ORD` (đơn hàng), `INVH` (hóa đơn), `INT` (tích hợp). Mã điểm cần phân tích có dạng `ISS-<Số thứ tự>`.
+Mã yêu cầu: `<Module>-BR-<Số thứ tự>`. Mã quy tắc: `<Module>-BRU-<Số thứ tự>`. Module: `INV` (tồn kho), `ORD` (đơn hàng), `INVH` (hóa đơn), `INT` (tích hợp). Mã nội dung cần đặc tả tiếp: `ISS-<Số thứ tự>`.
 
-Mã được giữ ổn định khi thay đổi nội dung, không tái sử dụng mã đã hủy. SRS, test case và User Guide tham chiếu mã BRD để truy vết; quan hệ có thể là nhiều-nhiều. Các mã chức năng, API và test case được cấp khi có đặc tả tương ứng.
+Mã giữ ổn định qua các phiên bản; yêu cầu/quy tắc bị thay thế được ghi rõ và không tái sử dụng cho nội dung khác. SRS, chức năng/API, test case và User Guide tham chiếu mã BRD để truy vết.
 
 ## 2. Bối cảnh và mục tiêu
 
-Phương Thảo cần kết nối Website bán hàng với phần mềm FAST để khách hàng tự đặt hàng dựa trên tồn khả dụng, giữ hàng trong thời gian chờ thanh toán và ghi nhận giao dịch bán hàng tại FAST sau thanh toán. Hủy đơn, hoàn hàng và hóa đơn liên quan phải được quản lý xuyên suốt, bảo đảm tồn kho không bị cộng/trừ sai hoặc xử lý trùng.
+Website Phương Thảo sử dụng tồn thực tế từ FBO để bán hàng. Đơn đã được Website xác nhận thanh toán có thể giao một lần hoặc nhiều lần. Website giữ phần hàng chưa giao; mỗi lần giao tạo giao dịch bán và HĐĐT riêng tại FBO/Portal. Khi hoàn hàng, cần xác định đúng lần giao và hóa đơn gốc để xử lý tồn, chứng từ và hóa đơn điều chỉnh tương ứng.
 
-Mục tiêu nghiệp vụ:
-
-- Hiển thị số lượng hàng khách còn có thể đặt dựa trên tồn thực tế từ FAST và các đơn đang giữ hàng.
-- Kiểm soát việc đặt hàng đồng thời để tránh bán vượt tồn khả dụng.
-- Tự động giải phóng hàng khi đơn bị hủy hoặc quá thời hạn thanh toán.
-- Đồng bộ đơn đã thanh toán sang FAST để tạo HĐBH, trừ tồn và khởi tạo/phát hành HĐĐT MTT.
-- Quản lý hủy/hoàn sau thanh toán, một phần hoặc toàn bộ, gắn với tồn kho, chứng từ và hóa đơn điều chỉnh giảm.
-- Cho phép theo dõi kết quả xử lý giữa Website và FAST.
+- Quản lý tồn khả dụng, không bán lại phần hàng đã dành cho đơn xác nhận.
+- Giữ toàn bộ hàng chưa giao của đơn Đã xác nhận và phần chưa giao của đơn Hoàn thành 1 phần.
+- Hỗ trợ nhiều lần giao trên một đơn; mỗi lần có danh sách hàng, số lượng và giá trị riêng.
+- Tạo HĐBH và phát hành HĐĐT MTT cho từng lần giao, không xuất lại toàn bộ đơn mỗi lần giao.
+- Hoàn hàng đúng lần giao, đúng dòng giao, đúng hóa đơn gốc; giữ lịch sử giao/hoàn.
+- Theo dõi lỗi và xử lý lại từng lần giao/hoàn mà không ghi nhận trùng.
 
 ## 3. Phạm vi và bên tham gia
 
-| Bên/hệ thống | Vai trò nghiệp vụ |
+| Bên/hệ thống | Vai trò |
 |---|---|
-| Khách hàng | Xem tồn khả dụng, đặt hàng, yêu cầu hủy/hoàn |
-| Nhân sự Phương Thảo | Theo dõi đơn, xử lý hủy/hoàn theo chính sách và kiểm tra kết quả đồng bộ |
-| Website Phương Thảo | Quản lý đơn, tồn bị giữ, tồn khả dụng; sử dụng kết quả xác nhận thanh toán do Website đã xử lý để trao đổi dữ liệu với PMKT FBO |
-| PMKT FBO | Quản lý tồn thực tế; xử lý HĐBH, xuất/nhập kho và nghiệp vụ hóa đơn |
-| Portal HĐĐT FAST | Thực hiện nghiệp vụ HĐĐT MTT và hóa đơn điều chỉnh giảm theo liên kết với FBO |
+| Khách hàng | Đặt hàng, nhận hàng một hoặc nhiều lần, yêu cầu hủy/hoàn |
+| Nhân sự Phương Thảo | Xác nhận và theo dõi giao hàng, hủy phần chưa giao, tiếp nhận/kiểm tra hoàn hàng |
+| Website | Quản lý đơn, trạng thái giao, từng lần giao/hoàn, tồn bị giữ và tồn khả dụng; gọi FBO yêu cầu bán/hoàn; cung cấp API nhận tồn và kết quả do FBO chủ động gửi |
+| PMKT FBO | Quản lý tồn thực tế; tạo HĐBH/trừ tồn cho từng lần giao; xử lý chứng từ hoàn và nhập lại tồn phù hợp; chủ động gửi tồn và kết quả HĐĐT mới cho Website |
+| Portal HĐĐT FAST | Phát hành HĐĐT MTT và HĐĐT điều chỉnh liên kết với FBO |
 
-Trong tài liệu, PMKT chỉ hệ thống FAST tham gia tích hợp. Website không phải nguồn quản lý tồn thực tế. Phạm vi kho cấp hàng cho Website cần được xác định trong SRS; không mặc định mọi hàng ở mọi kho đều có thể bán online.
+Website đã tự xử lý xác nhận thanh toán. Xây dựng/thay đổi cơ chế thanh toán và thực hiện hoàn tiền nằm ngoài phạm vi. Trạng thái trước Đã xác nhận do Website hiện có quản lý; không giữ hàng cho các trạng thái trước xác nhận trong mô hình này. Không có yêu cầu giữ hàng theo Chờ thanh toán hoặc tự nhả hàng theo thời hạn thanh toán T ở phiên bản 1.1.
 
-Việc xác nhận đơn đã thanh toán hay chưa do Website tự xử lý bằng chức năng đã có. Kết quả này là đầu vào cho nghiệp vụ quản lý tồn và đồng bộ đơn sang FBO. Dự án sử dụng kết quả xác nhận có sẵn; xây dựng hoặc thay đổi cơ chế thanh toán, xác thực giao dịch tiền và thực hiện hoàn tiền nằm ngoài phạm vi BRD/SRS này.
+Phạm vi kho bán online, ánh xạ mã hàng/biến thể và đơn vị tính được xác định trong SRS. Nhập lại hàng không đủ điều kiện bán không làm tăng tồn cấp cho Website.
 
-Phạm vi bao gồm:
-- Đồng bộ tồn thực tế
-- Tính tồn khả dụng
-- Giữ hàng khi đặt đơn
-- Thời hạn thanh toán
-- Xử lý đơn đã thanh toán
-- Hủy trước thanh toán
-- Hủy/hoàn sau thanh toán 
-- Thông tin hóa đơn
+## 4. Khái niệm và trạng thái
 
-## 4. Khái niệm nghiệp vụ
+| Khái niệm/trạng thái | Ý nghĩa |
+|---|---|
+| Đã xác nhận | Khách đã thanh toán, chưa giao hàng; giữ toàn bộ số lượng còn cần giao |
+| Hoàn thành 1 phần | Đã giao một phần, còn hàng cần giao; giữ phần chưa giao |
+| Hoàn thành | Đã giao toàn bộ số lượng cần giao; không còn lượng giữ do chưa giao |
+| Lần giao | Một giao dịch giao hàng có mã riêng, thuộc một đơn; có dòng hàng, số lượng, ngày, kho và giá trị riêng |
+| Dòng giao | Một dòng của lần giao, tham chiếu dòng đơn gốc; cùng dòng đơn có thể xuất hiện ở nhiều lần giao |
+| Lần hoàn | Một yêu cầu hoàn có mã riêng, trỏ đến một lần giao và các dòng giao tương ứng |
+| Tồn thực tế | Tồn do FBO cung cấp trong phạm vi kho cấp hàng cho Website |
+| Tồn bị giữ | Tổng lượng chưa giao của các đơn Đã xác nhận và Hoàn thành 1 phần |
+| Lượng đã giao chưa phản ánh trong tồn FBO nhận được | Lượng đã giao thực tế nhưng chưa được đối chiếu là đã trừ trong dữ liệu tồn Website đang sử dụng; cần tạm loại khỏi lượng có thể bán |
+| Kết quả đồng bộ lần giao | Kết quả HĐBH, trừ tồn và HĐĐT của từng lần giao, độc lập với trạng thái giao hàng của đơn |
 
-| Khái niệm | Định nghĩa | Hệ thống chịu trách nhiệm |
-|---|---|---|
-| Tồn thực tế | Số lượng tồn do FAST quản lý và cung cấp, trong phạm vi kho cấp hàng cho Website | FBO |
-| Tồn bị giữ | Tổng số lượng hàng trên các đơn Chờ thanh toán và Đã thanh toán, tính theo từng mặt hàng và phạm vi kho tương ứng | Website |
-| Tồn khả dụng | Tồn thực tế nhận từ FAST trừ tồn bị giữ | Website |
-| Chờ thanh toán | Đơn đã được tạo và đang giữ hàng trong thời hạn cho phép | Website |
-| Đã thanh toán | Website đã xác nhận khách trả tiền, nhưng chưa xác nhận hoàn tất ghi nhận bán và cập nhật tồn từ FBO; đơn tiếp tục giữ hàng | Website |
-| Đã xuất HĐ | Website đã xác nhận khách trả tiền, FBO đã tạo HĐBH và trừ tồn thành công; Website đã cập nhật tồn và giải phóng lượng giữ tương ứng. | Website |
-| HĐBH | Hóa đơn bán hàng/chứng từ bán hàng tại FAST | FBO |
-| HĐĐT MTT | Hóa đơn điện tử khởi tạo từ máy tính tiền | FBO và Portal HĐĐT |
-| Hủy trước thanh toán | Kết thúc đơn chưa thanh toán và giải phóng tồn bị giữ | Website |
-| Hủy/hoàn sau thanh toán | Xử lý đảo/điều chỉnh giao dịch đã bán theo số lượng yêu cầu hủy/hoàn | Website phối hợp FBO |
+Luồng trạng thái: `Đã xác nhận → Hoàn thành 1 phần → Hoàn thành`. Nếu giao hết trong một lần, chuyển trực tiếp `Đã xác nhận → Hoàn thành`. Giao thêm nhưng chưa hết thì vẫn Hoàn thành 1 phần.
 
-Kết quả xác nhận thanh toán có sẵn của Website được sử dụng độc lập với kết quả xử lý tại FBO. Khi Website đã xác nhận đơn đang Chờ thanh toán được thanh toán thành công, đơn chuyển sang Đã thanh toán để bắt đầu đồng bộ FBO. Đơn giữ nguyên lượng hàng đang giữ, không còn chịu thời hạn thanh toán T và không được tự động hủy/nhả tồn vì FBO chậm xử lý hoặc đồng bộ thất bại.
-
-Chỉ chuyển sang Đã xuất HĐ khi FBO xác nhận tạo HĐBH và trừ tồn thành công, đồng thời Website hoàn tất cập nhật tồn và giải phóng lượng giữ tương ứng. Việc FBO mới nhận yêu cầu chưa đủ để coi đồng bộ thành công. Kết quả phát hành HĐĐT được theo dõi riêng; lỗi hóa đơn không làm đơn quay lại Chờ thanh toán hoặc giữ lại lượng hàng đã ghi nhận bán.
+Trạng thái đơn phản ánh giao thực tế, không chờ FBO hoặc HĐĐT thành công mới ghi nhận đã giao. Lỗi tích hợp được theo dõi tại lần giao; không dùng Đã thanh toán/Đã xuất HĐ làm trạng thái thay thế cho tiến độ giao trong mô hình này.
 
 ## 5. Danh mục yêu cầu kinh doanh
 
-| Mã | Yêu cầu và kết quả mong muốn | Trách nhiệm chính | Nguồn / cơ sở |
-|---|---|---|---|
-| INV-BR-001 | Website nhận tồn thực tế từ FAST để làm cơ sở bán hàng; các thay đổi tồn thuộc phạm vi bán online phải được cập nhật về Website | FAST cung cấp; Website tiếp nhận | SRC-001, SRC-002 / yêu cầu |
-| INV-BR-002 | Website tính và hiển thị tồn khả dụng; cập nhật ngay khi tồn thực tế nhận được hoặc tồn bị giữ thay đổi | Website | SRC-002 / yêu cầu |
-| ORD-BR-001 | Khách tự đặt đơn trên Website; chỉ tạo đơn và giữ hàng khi đủ tồn khả dụng, kể cả khi nhiều khách đặt đồng thời | Website | SRC-002 / yêu cầu và phân tích bổ sung |
-| ORD-BR-002 | Đơn Chờ thanh toán giữ hàng tối đa trong thời hạn quy định; chưa thanh toán khi hết hạn thì tự động hủy và nhả tồn | Website | SRC-002 / yêu cầu |
-| ORD-BR-003 | Khi Website đã xác nhận đơn được thanh toán bằng chức năng có sẵn, Website gửi đơn sang FAST; FAST tạo HĐBH, trừ tồn thực tế và trả tồn mới để Website cập nhật đơn, giải phóng phần tồn bị giữ tương ứng | Website và FAST | SRC-002 / yêu cầu |
-| INVH-BR-001 | FAST khởi tạo/phát hành HĐĐT MTT cho giao dịch bán và trả thông tin hóa đơn về Website | FAST và Portal HĐĐT | SRC-002 / yêu cầu |
-| ORD-BR-004 | Đơn Chờ thanh toán bị hủy trước thanh toán được nhả tồn trên Website; không phát sinh nghiệp vụ đảo tồn thực tế tại FAST | Website | SRC-001, SRC-002 / yêu cầu và định hướng |
-| ORD-BR-005 | Hỗ trợ yêu cầu hủy/hoàn sau thanh toán, một phần hoặc toàn bộ, theo cùng cơ chế xử lý dựa trên số lượng | Website tiếp nhận; FAST xử lý giao dịch | SRC-002 / yêu cầu |
-| INV-BR-003 | Website cập nhật tồn sau hoàn theo kết quả FAST; hàng không đủ điều kiện bán không được cộng vào tồn khả dụng để bán tiếp | FAST xác nhận; Website cập nhật | SRC-002 / định hướng nghiệp vụ |
-| INVH-BR-002 | Khi xử lý hoàn giao dịch đã có HĐĐT gốc, PMKT lập HĐĐT điều chỉnh giảm tham chiếu hóa đơn gốc và trả thông tin về Website | FAST và Portal HĐĐT | SRC-002 / yêu cầu |
-| ORD-BR-006 | Ghi nhận số lượng, giá trị hàng đã hoàn và kết quả xử lý chứng từ từ FBO; giữ lịch sử đơn gốc để theo dõi hoàn một phần hoặc nhiều lần | Website phối hợp FBO | SRC-002 / định hướng nghiệp vụ; phạm vi cập nhật 06/10/2026 |
-| INT-BR-001 | Một giao dịch bán hoặc hủy/hoàn không được tạo chứng từ, thay đổi tồn hay phát hành hóa đơn trùng khi gửi lại yêu cầu | Website và FAST | SRC-002 / phân tích bổ sung |
-| INT-BR-002 | Theo dõi được kết quả xử lý đơn, tồn và hóa đơn; giao dịch chưa hoàn tất cần được nhận diện để xử lý tiếp | Website và FAST | SRC-002 / phân tích bổ sung |
-| ORD-BR-007 | Phân biệt đơn đã trả tiền nhưng chờ đồng bộ FBO với đơn đã trả tiền và đồng bộ thành công; bảo vệ hàng, ghi nhận lỗi và cho phép xử lý tiếp mà không yêu cầu khách thanh toán lại | Website phối hợp FBO | SRC-001 / yêu cầu cập nhật 06/10/2026 |
+| Mã | Yêu cầu cập nhật | Trách nhiệm |
+|---|---|---|
+| INV-BR-001 | FBO chủ động gọi API Website cập nhật tồn thực tế khi có thay đổi, kể cả thay đổi ngoài đơn Website | FBO và Website |
+| INV-BR-002 | Website tính và hiển thị tồn khả dụng theo tồn FBO, phần chưa giao đang giữ và lượng giao chưa phản ánh trong tồn | Website |
+| ORD-BR-001 | Kiểm tra đủ tồn khi chấp nhận xác nhận/giữ hàng; không giữ vượt lượng khả dụng khi nhiều đơn đồng thời được xác nhận | Website |
+| ORD-BR-002 | Ngừng áp dụng: giữ Chờ thanh toán và tự hủy theo T của phiên bản 1.0 được thay thế bởi giữ phần chưa giao theo SRC-004 | Website |
+| ORD-BR-003 | Mỗi lần giao gửi riêng FBO để tạo HĐBH, trừ tồn và khởi tạo HĐĐT cho đúng lượng/giá trị lần giao | Website và FBO |
+| INVH-BR-001 | Mỗi lần giao có HĐĐT MTT riêng, liên kết mã đơn, mã lần giao và HĐBH tương ứng | FBO/Portal và Website |
+| ORD-BR-004 | Hủy hợp lệ phần chưa giao thì nhả lượng giữ của phần đó; không tạo trả hàng/nhập lại tồn cho lượng chưa giao, chưa xuất tại FBO | Website |
+| ORD-BR-005 | Hoàn một phần/toàn bộ phải chỉ rõ lần giao, dòng giao và số lượng hoàn | Website và FBO |
+| INV-BR-003 | Chỉ tăng tồn bán online theo kết quả FBO khi hàng hoàn đủ điều kiện nhập lại kho bán | FBO và Website |
+| INVH-BR-002 | HĐĐT điều chỉnh giảm tham chiếu đúng HĐĐT gốc của lần giao bị hoàn | FBO/Portal |
+| ORD-BR-006 | Giữ lịch sử đơn, các lần giao, các lần hoàn, số lượng/giá trị và liên kết chứng từ/hóa đơn | Website và FBO |
+| INT-BR-001 | Không xử lý trùng cùng lần giao hoặc cùng lần hoàn khi gửi lại | Website và FBO |
+| INT-BR-002 | Theo dõi riêng kết quả bán/tồn/HĐĐT của từng lần giao và kết quả từng lần hoàn | Website và FBO |
+| ORD-BR-007 | Phân biệt tiến độ giao thực tế với kết quả FBO; bảo vệ lượng đã giao chưa phản ánh trong tồn và xử lý tiếp phần đồng bộ lỗi | Website và FBO |
+| ORD-BR-008 | Một đơn có nhiều lần giao; kiểm soát số lượng từng dòng giao không vượt phần còn cần giao | Website |
+| INT-BR-003 | FBO chủ động gửi kết quả bán/HĐĐT MTT theo lần giao và kết quả hoàn/HĐĐT điều chỉnh khi có thông tin mới; bảo đảm gửi lại khi Website chưa xác nhận tiếp nhận | FBO và Website |
+
+Các yêu cầu hiện hành đã cập nhật theo SRC-004; ORD-BR-002 giữ lại mã để truy vết nội dung đã ngừng áp dụng.
 
 ## 6. Quy tắc nghiệp vụ
 
-| Mã | Quy tắc | Yêu cầu liên quan |
-|---|---|---|
-| INV-BRU-001 | Tồn khả dụng = Tồn thực tế từ FAST - Tồn bị giữ; các đại lượng phải cùng mặt hàng, đơn vị tính và phạm vi kho | INV-BR-001, INV-BR-002 |
-| INV-BRU-002 | Tồn bị giữ = tổng số lượng mặt hàng trên các đơn Chờ thanh toán + tổng số lượng mặt hàng trên các đơn Đã thanh toán | INV-BR-002, ORD-BR-001, ORD-BR-007 |
-| ORD-BRU-001 | Chỉ chấp nhận đặt hàng khi tồn khả dụng đủ cho từng mặt hàng của đơn; các đơn đồng thời không được cùng sử dụng vượt lượng khả dụng | ORD-BR-001 |
-| ORD-BRU-002 | Đơn Chờ thanh toán giữ hàng tối đa T phút; giá trị T chưa được chốt. Quá hạn chưa thanh toán thì tự động hủy và giải phóng tồn | ORD-BR-002 |
-| ORD-BRU-003 | Hủy trước thanh toán chỉ làm giảm tồn bị giữ; tồn thực tế không thay đổi do thao tác hủy này | ORD-BR-004 |
-| INV-BRU-003 | Khi FAST ghi nhận bán Q sản phẩm và Website giải phóng Q sản phẩm đang giữ, tồn thực tế và tồn bị giữ cùng giảm Q. Tồn khả dụng không đổi nếu không có biến động khác | ORD-BR-003, INV-BR-002 |
-| INV-BRU-004 | Website không tự điều chỉnh tồn thực tế theo trạng thái đơn; tồn thực tế được cập nhật từ kết quả FAST | INV-BR-001, INV-BR-003 |
-| ORD-BRU-004 | Tổng số lượng hoàn thành công của mỗi dòng hàng không vượt số lượng đã bán; phải kiểm soát cả yêu cầu hoàn đang xử lý để tránh nhận vượt số lượng còn được hoàn | ORD-BR-005, ORD-BR-006 |
-| INV-BRU-005 | Hoàn tiền không mặc định làm tăng tồn bán được. Chỉ hàng được FAST xác nhận quay lại phạm vi kho bán online mới làm tăng tồn thực tế dùng cho Website | INV-BR-003 |
-| INVH-BRU-001 | Hóa đơn điều chỉnh giảm phải liên kết với hóa đơn gốc và nghiệp vụ hủy/hoàn tương ứng | INVH-BR-002 |
-| INT-BRU-001 | Gửi lại cùng giao dịch không được làm thay đổi tồn, tạo chứng từ hoặc hóa đơn thêm lần nữa | INT-BR-001 |
-| ORD-BRU-005 | Giữ lịch sử giao dịch gốc, các lần hoàn và kết quả xử lý chứng từ từ FBO; hoàn một phần không được làm mất thông tin phần hàng còn lại | ORD-BR-006 |
-| ORD-BRU-006 | Khi xác nhận thanh toán thành công, chuyển đơn Chờ thanh toán sang Đã thanh toán; không giảm tồn bị giữ và không áp dụng tự hủy theo thời hạn thanh toán T | ORD-BR-002, ORD-BR-007 |
-| ORD-BRU-007 | Chỉ chuyển đơn sang Đã xuất HĐ sau khi xác nhận FBO tạo HĐBH, trừ tồn thành công và Website hoàn tất cập nhật tồn, giải phóng lượng giữ tương ứng | ORD-BR-003, ORD-BR-007 |
-| INT-BRU-002 | Khi đồng bộ lỗi, mất phản hồi hoặc chưa rõ kết quả, đơn vẫn Đã thanh toán; lưu kết quả/lỗi, tiếp tục kiểm tra hoặc gửi lại cùng giao dịch và cho phép nhân sự xử lý. Không yêu cầu trả tiền lại hoặc tự nhả tồn | ORD-BR-007, INT-BR-001, INT-BR-002 |
-| INVH-BRU-002 | Theo dõi kết quả HĐĐT độc lập với đồng bộ HĐBH/tồn. Nếu ghi nhận bán và cập nhật tồn đã hoàn tất nhưng HĐĐT lỗi, giữ trạng thái Đã xuất HĐ và xử lý tiếp riêng phần hóa đơn | INVH-BR-001, ORD-BR-007, INT-BR-001 |
+| Mã | Quy tắc |
+|---|---|
+| INV-BRU-001 | Tồn khả dụng = Tồn thực tế FBO đang sử dụng - Tồn bị giữ - Lượng đã giao chưa phản ánh trong tồn đó; tính cùng mặt hàng, kho và đơn vị tính |
+| INV-BRU-002 | Tồn bị giữ chỉ gồm lượng chưa giao của đơn Đã xác nhận và Hoàn thành 1 phần |
+| ORD-BRU-001 | Kiểm tra tồn và giữ hàng khi xác nhận phải bảo đảm các đơn đồng thời không sử dụng vượt lượng khả dụng |
+| ORD-BRU-002 | Ngừng áp dụng quy tắc giữ Chờ thanh toán tối đa T của phiên bản 1.0 |
+| ORD-BRU-003 | Hủy phần chưa giao hợp lệ làm giảm lượng giữ, không tự cộng tồn thực tế FBO |
+| INV-BRU-003 | Khi giao Q: lượng chưa giao đang giữ giảm Q. Nếu tồn FBO chưa phản ánh lần giao, lượng cần tạm loại khỏi khả dụng tăng Q. Khi tồn đã phản ánh và được đối chiếu, bỏ lượng tạm loại Q cùng cập nhật tồn; không tính giảm hai lần |
+| INV-BRU-004 | Website không tự cộng/trừ tồn thực tế theo trạng thái đơn; tồn thực tế lấy từ FBO |
+| ORD-BRU-004 | Lượng hoàn đề nghị mới + tổng lượng hoàn thành công trước đó + lượng hoàn đang xử lý của từng dòng giao không vượt lượng đã giao của dòng đó; không chỉ kiểm tra tổng lượng toàn đơn |
+| INV-BRU-005 | Hoàn tiền hoặc yêu cầu hoàn không mặc định làm tăng tồn bán được; tăng tồn theo xác nhận nhập lại kho bán của FBO |
+| INVH-BRU-001 | Mỗi hóa đơn điều chỉnh giảm gắn đúng lần giao và HĐĐT gốc; hoàn liên quan nhiều lần giao phải tách thành các yêu cầu tương ứng từng lần giao |
+| INT-BRU-001 | Cùng mã lần giao/yêu cầu gửi lại không tạo thêm HĐBH, trừ tồn hoặc HĐĐT; mỗi lần giao mới có mã riêng. Cùng lần hoàn gửi lại không nhập kho/điều chỉnh thêm lần nữa |
+| ORD-BRU-005 | Hoàn hàng không xóa lịch sử đã giao và không tự mở lại lượng cần giao/giữ hàng; giao bù/đổi hàng là nghiệp vụ riêng chưa xác lập trong phạm vi |
+| ORD-BRU-006 | Website xác nhận khách đã thanh toán thì đơn Đã xác nhận và giữ toàn bộ phần chưa giao; chưa gửi tạo HĐBH chỉ vì đã thanh toán |
+| ORD-BRU-007 | Trạng thái đơn dựa trên lượng giao thực tế lũy kế: chưa giao là Đã xác nhận, giao một phần là Hoàn thành 1 phần, giao hết là Hoàn thành; độc lập kết quả FBO |
+| INT-BRU-002 | Đồng bộ lỗi/chưa rõ kết quả: giữ nguyên tiến độ giao đã ghi nhận, đối chiếu/gửi lại đúng lần giao, không tạo lần giao mới để thử lại |
+| INVH-BRU-002 | HĐĐT lỗi được xử lý tiếp riêng, không ghi nhận bán/trừ tồn lại; không điều chỉnh hóa đơn của lần giao khác |
+| ORD-BRU-008 | Lượng còn cần giao mỗi dòng = lượng xác nhận - lượng đã giao lũy kế - lượng chưa giao đã hủy hợp lệ; không trừ lượng hoàn khỏi lịch sử đã giao |
+| INT-BRU-003 | Website cung cấp API nhận tồn/kết quả; FBO chủ động đẩy, không phụ thuộc Website polling. Website lưu an toàn trước khi xác nhận, chống sự kiện trùng/cũ; FBO lưu hàng đợi và retry cùng sự kiện nếu lỗi/mất xác nhận. Số tồn chỉ cập nhật qua luồng tồn, không ghi đè từ callback hóa đơn |
 
-## 7. Luồng nghiệp vụ và định hướng giải pháp
+Khi dữ liệu tồn đã phản ánh đầy đủ tất cả lần giao, lượng giao chưa phản ánh bằng 0 và công thức trở về **Tồn khả dụng = Tồn thực tế - Tồn bị giữ**. Phần tạm loại là kiểm soát đồng bộ, không mở rộng phạm vi giữ hàng nghiệp vụ ngoài phần chưa giao.
 
-Các sơ đồ dưới đây chia làn theo bên/hệ thống tham gia. Mũi tên giữa hai làn biểu thị trao đổi dữ liệu; mũi tên trong cùng một làn biểu thị nghiệp vụ hệ thống tự xử lý. Các nhánh điều kiện thể hiện tình huống thành công, từ chối hoặc cần xử lý tiếp.
+## 7. Luồng nghiệp vụ và giải pháp
 
-### 7.1. Xem tồn và đặt hàng
+Sơ đồ chia làn theo hệ thống; mũi tên cùng làn là nghiệp vụ nội bộ, giữa làn là trao đổi dữ liệu. Xác nhận thanh toán do Website có sẵn xử lý.
 
-Liên quan: `INV-BR-001`, `INV-BR-002`, `ORD-BR-001`.
+### 7.1. Tồn thực tế và xác nhận giữ hàng
 
 ```mermaid
 sequenceDiagram
+    participant FBO as PMKT FBO
+    participant WEB as Website
     actor KH as Khách hàng
-    participant WEB as Website
-    participant FBO as PMKT FBO
-    FBO->>WEB: Cung cấp/cập nhật tồn thực tế<br/>trong phạm vi bán online
-    WEB->>WEB: Tính tồn khả dụng<br/>= Tồn thực tế - Tồn bị giữ
-    WEB-->>KH: Hiển thị tồn khả dụng
-    KH->>WEB: Đặt hàng: mặt hàng và số lượng
-    WEB->>WEB: Kiểm tra tồn cho tất cả mặt hàng
-    alt Đủ tồn khả dụng
-        WEB->>WEB: Tạo đơn Chờ thanh toán<br/>và giữ số lượng tương ứng
-        WEB->>WEB: Tính lại tồn khả dụng
-        WEB-->>KH: Trả kết quả đặt hàng thành công
-        Note over WEB: Theo dõi đơn theo luồng 7.2 hoặc 7.3
-    else Không đủ tồn khả dụng
-        WEB-->>KH: Thông báo không đủ hàng
-        Note over WEB: Không tạo đơn, không giữ tồn
+    FBO->>WEB: Chủ động đẩy tồn mới theo hàng/kho
+    WEB-->>FBO: Xác nhận tiếp nhận tồn
+    WEB->>WEB: Đối chiếu dữ liệu tồn và tính tồn khả dụng
+    WEB-->>KH: Hiển thị lượng có thể đặt
+    Note over WEB: Đầu vào: Website đã xác nhận thanh toán
+    WEB->>WEB: Kiểm tra tồn và xác nhận giữ hàng
+    alt Đủ tồn
+        WEB->>WEB: Đơn Đã xác nhận<br/>Giữ toàn bộ phần chưa giao
+    else Không đủ tồn tại thời điểm xác nhận
+        WEB->>WEB: Ghi nhận thiếu hàng để xử lý<br/>Không giữ vượt tồn khả dụng
     end
+    Note over WEB,FBO: Chưa tạo HĐBH/HĐĐT chỉ vì khách đã thanh toán
 ```
 
-Việc kiểm tra tồn, tạo đơn và giữ hàng phải bảo đảm các đơn đặt đồng thời không sử dụng vượt tồn khả dụng.
+Trước Đã xác nhận không giữ hàng; nếu Website đã nhận tiền nhưng không đủ tồn lúc xác nhận, cần chính sách xử lý thiếu hàng theo ISS-008, không giả định thanh toán sẽ tự được hoàn.
 
-FAST tiếp tục cung cấp thay đổi tồn ngoài luồng đơn Website, như bán tại cửa hàng hoặc điều chỉnh kho. Cơ chế và thời gian đồng bộ được đặc tả trong SRS.
-
-### 7.2. Hết hạn hoặc hủy trước thanh toán
-
-Liên quan: `ORD-BR-002`, `ORD-BR-004`.
-
-```mermaid
-sequenceDiagram
-    actor KH as Khách hàng
-    participant WEB as Website
-    participant FBO as PMKT FBO
-    Note over WEB: Đơn Chờ thanh toán, đang giữ hàng
-    opt Khách chủ động hủy
-        KH->>WEB: Yêu cầu hủy đơn
-    end
-    WEB->>WEB: Sử dụng kết quả xác nhận<br/>thanh toán có sẵn
-    alt Website đã xác nhận thanh toán
-        WEB->>WEB: Chuyển sang luồng 7.3<br/>Không tự hủy theo T
-    else Chưa thanh toán và có yêu cầu hủy hoặc hết hạn T
-        WEB->>WEB: Chuyển đơn sang Hủy/Hết hạn
-        WEB->>WEB: Nhả lượng tồn bị giữ của đơn<br/>và tính lại tồn khả dụng
-        WEB-->>KH: Cập nhật kết quả đơn Hủy/Hết hạn
-        Note over WEB,FBO: Không gửi nghiệp vụ nhập lại hàng sang FBO<br/>Tồn thực tế không thay đổi do hủy đơn này
-    else Chưa thanh toán, chưa hủy và chưa hết hạn
-        WEB->>WEB: Tiếp tục giữ hàng và theo dõi đơn
-    end
-```
-
-### 7.3. Thanh toán thành công và ghi nhận bán hàng
-
-Liên quan: `ORD-BR-003`, `ORD-BR-007`, `INVH-BR-001`, `INT-BR-001`, `INT-BR-002`.
-
-```mermaid
-sequenceDiagram
-    participant WEB as Website
-    participant FBO as PMKT FBO
-    Note over WEB: Đầu vào: Website đã xác nhận thanh toán<br/>bằng chức năng có sẵn
-    WEB->>WEB: Đơn Đã thanh toán<br/>Tiếp tục giữ hàng, không tự hủy theo T
-    WEB->>FBO: Gửi đơn và thông tin lập hóa đơn
-    FBO->>FBO: Kiểm tra giao dịch đã xử lý<br/>Không tạo HĐBH/trừ tồn trùng
-    alt Ghi nhận bán thành công và Website nhận đủ kết quả
-        FBO->>FBO: Tạo HĐBH và trừ tồn một lần<br/>hoặc lấy kết quả giao dịch đã xử lý
-        FBO-->>WEB: Kết quả HĐBH và tồn thực tế sau bán
-        WEB->>WEB: Cập nhật tồn thực tế và giải phóng<br/>lượng giữ tương ứng một cách nhất quán
-        WEB->>WEB: Chuyển đơn sang Đã xuất HĐ
-    else FBO lỗi, chưa xong hoặc Website mất phản hồi
-        WEB->>WEB: Giữ đơn Đã thanh toán và giữ hàng<br/>Lưu lỗi/kết quả để theo dõi
-        WEB->>FBO: Đối chiếu kết quả hoặc gửi lại<br/>cùng giao dịch
-        FBO-->>WEB: Cung cấp kết quả thực tế khi xác định được
-        Note over WEB,FBO: Chỉ chuyển Đã xuất HĐ khi xác nhận bán thành công<br/>và Website hoàn tất cập nhật tồn<br/>Không yêu cầu trả tiền lại
-    end
-```
-
-Sơ đồ tách kết quả bán hàng và kết quả HĐĐT để dễ theo dõi; FBO có thể khởi tạo HĐĐT cùng lúc xử lý bán hàng. Trạng thái Đã xuất HĐ tại đây xác nhận HĐBH/tồn đã được cập nhật, không mặc định HĐĐT đã phát hành thành công.
-
-#### 7.3.1. Khởi tạo/phát hành HĐĐT MTT
+### 7.2. Giao một phần hoặc toàn bộ
 
 ```mermaid
 sequenceDiagram
     participant WEB as Website
     participant FBO as PMKT FBO
     participant PORTAL as Portal HĐĐT FAST
-    Note over WEB,FBO: Giao dịch bán đã được FBO ghi nhận<br/>Kết quả HĐĐT được theo dõi riêng
-    FBO->>PORTAL: Yêu cầu khởi tạo/phát hành HĐĐT MTT
-    PORTAL->>PORTAL: Xử lý nghiệp vụ HĐĐT
-    alt Phát hành thành công
-        PORTAL-->>FBO: Kết quả và thông tin HĐĐT
-        FBO-->>WEB: Số hóa đơn, ký hiệu, mẫu số<br/>Link tra cứu, mã tra cứu
-        WEB->>WEB: Lưu thông tin HĐĐT và liên kết với đơn
-    else Chưa hoàn tất hoặc lỗi
-        PORTAL-->>FBO: Kết quả đang xử lý/lỗi khi có
-        FBO-->>WEB: Cung cấp kết quả HĐĐT khi xác định được
-        WEB->>WEB: Theo dõi hóa đơn chưa hoàn tất<br/>Giữ đơn Đã xuất HĐ nếu bán/tồn đã cập nhật
-        Note over FBO,PORTAL: Đối chiếu/xử lý tiếp riêng phần HĐĐT<br/>Không ghi nhận bán, trừ tồn hoặc phát hành trùng
+    WEB->>WEB: Xác nhận một lần giao thực tế<br/>Mã lần giao, dòng hàng và số lượng riêng
+    WEB->>WEB: Giảm phần chưa giao đang giữ<br/>Cập nhật Hoàn thành 1 phần hoặc Hoàn thành
+    Note over WEB: Tạm loại lượng đã giao chưa phản ánh trong tồn<br/>để không bán lại hàng đã giao
+    WEB->>FBO: Gửi riêng dữ liệu lần giao<br/>Không gửi lại toàn bộ số lượng đơn
+    FBO->>FBO: Tạo HĐBH và trừ tồn đúng lần giao<br/>Không xử lý trùng
+    FBO-->>WEB: Phản hồi yêu cầu bán của lần giao
+    FBO->>WEB: Chủ động đẩy tồn mới và kết quả xử lý<br/>qua các API Website tương ứng
+    WEB-->>FBO: Xác nhận tiếp nhận
+    alt Đủ kết quả để đối chiếu tồn
+        WEB->>WEB: Cập nhật tồn nhất quán<br/>Bỏ lượng tạm loại đã được phản ánh
+    else Lỗi, đang xử lý hoặc mất phản hồi
+        FBO->>WEB: Gửi lại sự kiện chưa được xác nhận
+        Note over WEB: Giữ tiến độ giao thực tế<br/>Theo dõi riêng kết quả FBO
+    end
+    opt Lần giao đã được FBO ghi nhận bán
+        FBO->>PORTAL: Phát hành HĐĐT MTT cho lần giao này
+        PORTAL-->>FBO: Kết quả và thông tin hóa đơn
+        FBO->>WEB: Chủ động đẩy kết quả hóa đơn mới theo mã lần giao
+        WEB-->>FBO: Xác nhận tiếp nhận kết quả
+        WEB->>WEB: Liên kết đơn, lần giao, HĐBH và HĐĐT<br/>Theo dõi phần chưa hoàn tất
     end
 ```
 
-Thông tin HĐĐT cần có: số hóa đơn, ký hiệu, mẫu số, link tra cứu và mã tra cứu. Đây là nhu cầu dữ liệu nghiệp vụ; tên trường, định dạng và cách trả kết quả được quy định trong SRS/API.
+FBO có thể phát hành HĐĐT trong cùng luồng ghi nhận bán. Khi có kết quả mới từ Portal, FBO chủ động gửi vào API Website; Website không phải tra cứu để nhận hóa đơn. Một đơn có thể có nhiều HĐBH/HĐĐT, mỗi bộ gắn một lần giao. Lỗi/mất phản hồi yêu cầu bán được đối soát hoặc gửi lại cùng mã yêu cầu, không tạo giao dịch mới; mất xác nhận callback được FBO gửi lại cùng sự kiện.
 
-Nếu FBO lỗi, chưa xử lý xong hoặc Website không nhận được phản hồi, đơn giữ trạng thái Đã thanh toán. Website hiển thị kết quả thanh toán đã thành công và kết quả đồng bộ đang chờ/lỗi để nhân sự theo dõi; lưu thông tin lỗi, tiếp tục kiểm tra kết quả hoặc gửi lại cùng giao dịch. Mất phản hồi không được coi là FBO chưa thực hiện nghiệp vụ. Việc xử lý tiếp phải tuân thủ `INT-BRU-001` để tránh tạo HĐBH hoặc trừ tồn trùng.
-
-Nếu không thể hoàn tất đồng bộ và cần kết thúc đơn đã trả tiền, phải xử lý theo nghiệp vụ hủy/hoàn sau thanh toán, xác minh kết quả tại FBO để xử lý chứng từ và tồn phù hợp; không dùng thao tác hủy trước thanh toán để nhả tồn trực tiếp. Xem [ISS-007 - Hủy/hoàn khi giao dịch bán hoặc hóa đơn chưa hoàn tất](#iss-007). Việc hoàn tiền được xử lý ngoài phạm vi tích hợp này.
-
-#### 7.3.2. Chuyển trạng thái và tác động tồn
-
-| Trạng thái/sự kiện | Thanh toán | Đồng bộ bán hàng FBO | Tồn bị giữ | Tự hủy theo T |
-|---|---|---|---|---|
-| Chờ thanh toán | Chưa xác nhận thành công | Chưa gửi bán hàng | Có | Có, nếu chưa thanh toán |
-| Đã thanh toán | Đã thành công | Chưa gửi / đang xử lý / lỗi / chưa rõ kết quả | Tiếp tục giữ | Không |
-| Đã xuất HĐ | Đã thành công | HĐBH, trừ tồn và cập nhật Website đã hoàn tất | Giải phóng lượng tương ứng | Không |
-| Hủy/Hết hạn trước thanh toán | Chưa thanh toán | Không phát sinh bán hàng | Giải phóng | Đã kết thúc |
-
-```mermaid
-flowchart LR
-    A["Chờ thanh toán<br/>Có giữ hàng"] -->|Website đã xác nhận thanh toán| B["Đã thanh toán<br/>Tiếp tục giữ hàng<br/>Không tự hủy theo T"]
-    A -->|Hủy / hết hạn khi chưa thanh toán| C["Hủy/Hết hạn<br/>Nhả tồn bị giữ"]
-    B -->|FBO ghi nhận bán và Website cập nhật tồn| D["Đã xuất HĐ<br/>Giải phóng lượng giữ tương ứng"]
-    B -->|Đồng bộ lỗi / chưa rõ kết quả| B
-```
-
-Thanh toán thành công chỉ chuyển loại đơn đang giữ, không làm thay đổi lượng giữ. Khi đồng bộ thành công, lượng giữ được chuyển thành lượng đã bán; tồn thực tế và tồn bị giữ cùng giảm số lượng tương ứng. Nếu một bản cập nhật tồn đã phản ánh giao dịch bán, hệ thống phải đối chiếu phần giữ tương ứng để không trừ cùng lượng hàng hai lần. Xem [ISS-004 - Cập nhật nhất quán tồn thực tế và tồn bị giữ](#iss-004).
-
-### 7.4. Hủy/hoàn sau thanh toán
-
-Liên quan: `ORD-BR-005`, `ORD-BR-006`, `INV-BR-003`, `INVH-BR-002`.
+### 7.3. Hủy phần chưa giao
 
 ```mermaid
 sequenceDiagram
     actor KH as Khách hàng
     participant WEB as Website
     participant FBO as PMKT FBO
-    KH->>WEB: Yêu cầu hủy/hoàn một phần hoặc toàn bộ
-    WEB->>WEB: Kiểm tra chính sách và số lượng còn được hoàn
-    alt Không đáp ứng điều kiện
-        WEB-->>KH: Thông báo không chấp nhận hủy/hoàn
-    else Đáp ứng điều kiện
-        WEB->>FBO: Đối chiếu giao dịch bán gốc
-        FBO-->>WEB: Kết quả ghi nhận giao dịch gốc
-        alt Chưa ghi nhận bán hoặc chưa rõ kết quả
-            Note over WEB,FBO: Xác minh giao dịch chưa hoàn tất<br/>Không tự nhả tồn hoặc tạo chứng từ hoàn<br/>Chi tiết ISS-007 tại mục 10.2
-        else Đã xác nhận giao dịch bán gốc
-            WEB->>FBO: Gửi đơn/chứng từ gốc, hàng hóa<br/>Số lượng, giá trị và lý do hủy/hoàn
-            FBO->>FBO: Xử lý chứng từ trả hàng/điều chỉnh HĐBH<br/>và nghiệp vụ tồn theo tình trạng hàng
-            alt Hàng được xác nhận quay lại kho bán online
-                FBO->>FBO: Tăng tồn bán được tương ứng
-            else Hàng không đủ điều kiện bán lại
-                FBO->>FBO: Không tăng tồn bán online
-            end
-            FBO-->>WEB: Kết quả chứng từ, tồn mới<br/>Số lượng và giá trị hàng hoàn
-            WEB->>WEB: Cập nhật tồn theo FBO<br/>Lưu lịch sử hoàn và liên kết chứng từ
-            Note over WEB,FBO: Theo dõi tiếp hóa đơn điều chỉnh tại luồng 7.4.1<br/>Phần chưa hoàn tất được nhận diện để xử lý tiếp
-        end
+    KH->>WEB: Yêu cầu hủy phần chưa giao
+    WEB->>WEB: Kiểm tra điều kiện và phần chưa giao<br/>Không bao gồm lần giao đang xử lý
+    alt Hủy hợp lệ, chưa xuất tại FBO
+        WEB->>WEB: Ghi nhận lượng chưa giao bị hủy<br/>Nhả lượng giữ tương ứng
+        Note over WEB,FBO: Không tạo trả hàng/nhập lại tồn<br/>Hóa đơn các lần đã giao không đổi
+    else Đã giao hoặc chưa rõ kết quả xuất tại FBO
+        Note over WEB,FBO: Đối chiếu lần giao theo ISS-007<br/>Không tự nhả lượng đã giao chờ đồng bộ
     end
 ```
 
-Với hàng đã giao, việc tăng tồn bán được phụ thuộc kết quả nhận và kiểm tra hàng; với hàng chưa giao, FBO xử lý đảo giao dịch theo tình trạng thực tế. Việc thực hiện hoàn tiền thuộc quy trình ngoài phạm vi dự án này.
+Nếu phần chưa giao đã hủy hết, trạng thái kết thúc đơn được đặc tả trong SRS: đơn chưa giao có thể Hủy; đơn đã giao một phần kết thúc nghĩa vụ giao phần còn lại nhưng không xóa lịch sử đã giao. Không coi hủy phần chưa giao là hoàn hàng của hóa đơn đã xuất.
 
-Hoàn một phần và toàn bộ dùng chung cơ chế, khác số lượng yêu cầu. Mỗi lần hoàn được theo dõi riêng và liên kết với đơn gốc. Trường hợp chưa có HĐĐT gốc, thứ tự xử lý chứng từ/hóa đơn cần được phân tích; không mặc định có thể lập hóa đơn điều chỉnh ngay.
-
-#### 7.4.1. HĐĐT điều chỉnh giảm cho giao dịch hủy/hoàn
+### 7.4. Hoàn hàng theo lần giao và hóa đơn gốc
 
 ```mermaid
 sequenceDiagram
+    actor KH as Khách hàng
     participant WEB as Website
     participant FBO as PMKT FBO
     participant PORTAL as Portal HĐĐT FAST
-    Note over WEB,FBO: Nghiệp vụ hủy/hoàn đã được tiếp nhận/xử lý tại FBO
-    alt Đã có HĐĐT gốc
-        FBO->>FBO: Lập thông tin điều chỉnh giảm<br/>tham chiếu HĐĐT gốc và nghiệp vụ hủy/hoàn
-        FBO->>PORTAL: Yêu cầu phát hành HĐĐT điều chỉnh giảm
-        PORTAL->>PORTAL: Xử lý hóa đơn điều chỉnh giảm
-        alt Phát hành thành công
-            PORTAL-->>FBO: Kết quả và thông tin hóa đơn điều chỉnh
-            FBO-->>WEB: Cung cấp thông tin HĐĐT điều chỉnh giảm
-            WEB->>WEB: Liên kết hóa đơn điều chỉnh<br/>với đơn, lần hoàn và hóa đơn gốc
-        else Chưa hoàn tất hoặc lỗi
-            PORTAL-->>FBO: Kết quả đang xử lý/lỗi khi có
-            FBO-->>WEB: Cung cấp kết quả hóa đơn khi xác định được
-            Note over WEB,PORTAL: Theo dõi/xử lý tiếp hóa đơn<br/>Không lặp nghiệp vụ nhập kho hoặc điều chỉnh chứng từ
-        end
-    else Chưa có HĐĐT gốc
-        Note over WEB,FBO: Xác định trình tự chứng từ/hóa đơn<br/>Không mặc định lập hóa đơn điều chỉnh ngay<br/>Chi tiết ISS-007 tại mục 10.2
+    KH->>WEB: Hoàn hàng thuộc lần giao cụ thể
+    WEB->>WEB: Kiểm tra mã lần giao, dòng giao<br/>Lượng còn được hoàn và hóa đơn gốc
+    WEB->>FBO: Gửi yêu cầu hoàn của lần giao<br/>Tham chiếu HĐBH và HĐĐT tương ứng
+    FBO->>FBO: Xử lý chứng từ hoàn và tồn theo tình trạng hàng<br/>Không nhập lại tồn trùng
+    alt Có HĐĐT gốc của lần giao
+        FBO->>PORTAL: Phát hành HĐĐT điều chỉnh giảm<br/>tham chiếu đúng hóa đơn gốc
+        PORTAL-->>FBO: Kết quả và hóa đơn điều chỉnh
+    else HĐĐT gốc chưa hoàn tất
+        Note over WEB,PORTAL: Xử lý trình tự theo ISS-007<br/>Không lấy hóa đơn lần giao khác để điều chỉnh
     end
+    FBO->>WEB: Chủ động đẩy tồn mới nếu thay đổi<br/>và kết quả hoàn/hóa đơn điều chỉnh qua API tương ứng
+    WEB-->>FBO: Xác nhận tiếp nhận
+    WEB->>WEB: Cập nhật theo FBO<br/>Lưu lần hoàn gắn đúng lần giao/dòng giao
 ```
 
-### 7.5. Ví dụ biến động tồn
+Một yêu cầu hoàn tích hợp chỉ tham chiếu một lần giao. Khách trả hàng thuộc hai lần giao thì Website tách hai yêu cầu, mỗi yêu cầu điều chỉnh hóa đơn tương ứng. Tổng lượng hoàn được kiểm soát theo từng dòng giao, gồm cả các yêu cầu hoàn đang xử lý.
 
-Ví dụ một mặt hàng, cùng phạm vi kho, không có biến động từ kênh khác:
+### 7.5. Ví dụ
 
-| Sự kiện | Tồn thực tế | Tồn bị giữ | Tồn khả dụng |
-|---|---:|---:|---:|
-| Ban đầu | 10 | 0 | 10 |
-| Khách đặt 3, đơn Chờ thanh toán | 10 | 3 | 7 |
-| Nhánh A: đơn bị hủy trước thanh toán | 10 | 0 | 10 |
-| Nhánh B: đã trả tiền, Chờ đồng bộ FBO; FBO chưa ghi nhận bán | 10 | 3 | 7 |
-| Nhánh B: đồng bộ lỗi trước khi FBO ghi nhận bán | 10 | 3 | 7 |
-| Nhánh B: thanh toán, FAST ghi nhận bán 3 và Website hoàn tất cập nhật | 7 | 0 | 7 |
-| Sau nhánh B: hoàn 2, FAST xác nhận nhập lại kho bán | 9 | 0 | 9 |
+Đơn D001 mua 10 áo, tồn ban đầu 100, không có biến động khác:
 
-Nhánh A và B là hai tình huống thay thế nhau. Các dòng chờ/lỗi minh họa khi FBO chưa trừ tồn; nếu FBO đã xử lý nhưng mất phản hồi, cần đối chiếu kết quả thực tế, không mặc định tồn vẫn là 10. Nếu hàng hoàn không đủ điều kiện bán lại thì việc hoàn tiền không làm tăng tồn khả dụng của Website.
+| Sự kiện | Trạng thái đơn | Đã giao lũy kế | Chưa giao đang giữ | Tồn FBO đã đối chiếu | Tồn khả dụng |
+|---|---|---:|---:|---:|---:|
+| Xác nhận sau thanh toán | Đã xác nhận | 0 | 10 | 100 | 90 |
+| Giao G001: 4 áo, FBO xử lý xong | Hoàn thành 1 phần | 4 | 6 | 96 | 90 |
+| Giao G002: 6 áo, FBO xử lý xong | Hoàn thành | 10 | 0 | 90 | 90 |
+| Hoàn 2 áo thuộc G001, đủ điều kiện nhập kho bán | Hoàn thành, có lịch sử hoàn | 10 | 0 | 92 | 92 |
+
+G001 tạo HĐBH/HĐĐT số 1 cho 4 áo; G002 tạo HĐBH/HĐĐT số 2 cho 6 áo. Hoàn 2 áo của G001 chỉ điều chỉnh HĐĐT số 1. Không điều chỉnh số 2, không mở lại lượng giữ vì có hoàn.
+
+Nếu đã giao 4 nhưng tồn đang dùng vẫn 100: lượng giữ là 6 và lượng giao chưa phản ánh là 4, nên khả dụng = 100 - 6 - 4 = 90. Khi tồn 96 đã được đối chiếu với G001, bỏ lượng tạm loại 4: khả dụng = 96 - 6 = 90.
 
 ## 8. Phân chia trách nhiệm
 
-| Nghiệp vụ | Website | FAST / Portal |
+| Nghiệp vụ | Website | FBO/Portal |
 |---|---|---|
-| Quản lý và cung cấp tồn thực tế | Nhận, lưu dữ liệu đồng bộ | Quản lý, cung cấp |
-| Tính/hiển thị tồn khả dụng | Chủ trì | Cung cấp tồn thực tế |
-| Tạo đơn, kiểm tra và giữ hàng | Chủ trì | Không giữ hàng theo luồng mục tiêu |
-| Hết hạn/hủy trước thanh toán | Hủy đơn, nhả tồn dựa trên kết quả xác nhận thanh toán có sẵn | Không đảo tồn thực tế |
-| Sử dụng kết quả xác nhận thanh toán | Lấy kết quả từ chức năng Website đã có để bắt đầu đồng bộ đơn | Nhận đơn đã được Website xác nhận thanh toán |
-| Đơn đã trả tiền, chờ đồng bộ | Phân biệt trạng thái, tiếp tục giữ hàng, theo dõi lỗi và xử lý tiếp | Cung cấp kết quả ghi nhận bán để đối chiếu, tránh xử lý trùng |
-| HĐBH và trừ tồn | Gửi đơn, nhận kết quả | Chủ trì |
-| HĐĐT MTT | Nhận và liên kết thông tin | Khởi tạo/phát hành, cung cấp kết quả |
-| Tiếp nhận hủy/hoàn sau thanh toán | Chủ trì tiếp nhận | Xử lý nghiệp vụ liên quan |
-| Điều chỉnh chứng từ, nhập lại/đảo tồn | Nhận kết quả, cập nhật tồn | Chủ trì theo tình trạng hàng |
-| HĐĐT điều chỉnh giảm | Nhận và liên kết thông tin | Chủ trì |
-| Theo dõi lỗi và xử lý lại | Theo dõi kết quả đồng bộ Website - FBO | Cung cấp kết quả xử lý FAST |
+| Tồn thực tế | Nhận/đối chiếu | Quản lý và đẩy dữ liệu |
+| Xác nhận và giữ phần chưa giao | Kiểm tra tồn, giữ và tính khả dụng | Không tạo bán khi chỉ xác nhận thanh toán |
+| Lần giao và trạng thái đơn | Quản lý mã/dòng/số lượng, tiến độ thực tế | Nhận dữ liệu lần giao |
+| HĐBH/trừ tồn theo lần giao | Gửi, đối chiếu và theo dõi kết quả | Tạo chứng từ/trừ tồn riêng, chống trùng |
+| HĐĐT MTT | Cung cấp API nhận, xác nhận và lưu hóa đơn theo lần giao | Portal phát hành; FBO chủ động đẩy kết quả mới |
+| Hủy phần chưa giao | Xác nhận hủy/nhả lượng giữ hợp lệ | Không nhập lại hàng chưa xuất |
+| Hoàn hàng | Chỉ rõ lần giao/dòng giao và hóa đơn gốc; nhận kết quả qua API | Chứng từ/tồn và hóa đơn điều chỉnh đúng giao dịch; chủ động đẩy kết quả mới |
+| Lỗi/đối soát | Theo dõi từng lần giao/hoàn, chống sự kiện trùng/cũ | Lưu hàng đợi, gửi lại sự kiện chưa được xác nhận và đối soát lỗi |
 
 ## 9. Tiêu chí nghiệm thu nghiệp vụ
 
 | Mã | Tiêu chí | Tham chiếu |
 |---|---|---|
-| AC-001 | Website tính đúng tồn khả dụng theo tồn FAST và lượng giữ của cả đơn Chờ thanh toán lẫn Đã thanh toán; thay đổi tồn nhận từ FAST được phản ánh theo mức thời gian thống nhất trong SRS | INV-BR-001, INV-BR-002, ORD-BR-007 |
-| AC-002 | Khi nhiều khách đồng thời đặt lượng hàng cuối cùng, tổng lượng được chấp nhận không vượt tồn khả dụng | ORD-BR-001 |
-| AC-003 | Đơn chưa thanh toán hết hạn T hoặc bị hủy được nhả tồn; thao tác này không thay đổi tồn thực tế tại FAST | ORD-BR-002, ORD-BR-004 |
-| AC-004 | Một đơn thanh toán thành công được ghi nhận bán một lần tại FAST; tồn thực tế và tồn giữ giảm cùng số lượng, không làm thay đổi tồn khả dụng nếu không có biến động khác | ORD-BR-003, INT-BR-001 |
-| AC-005 | Website nhận và liên kết đủ thông tin HĐĐT MTT với đơn; nhận diện được hóa đơn chưa phát hành thành công | INVH-BR-001, INT-BR-002 |
-| AC-006 | Hủy/hoàn một phần, toàn bộ và nhiều lần được theo dõi theo số lượng; không xử lý vượt lượng đã bán; giữ lịch sử đơn gốc | ORD-BR-005, ORD-BR-006 |
-| AC-007 | Hàng hoàn đủ điều kiện bán chỉ làm tăng tồn khả dụng sau xác nhận FAST; hàng lỗi không được cộng vào tồn bán online chỉ vì đã hoàn tiền | INV-BR-003 |
-| AC-008 | Giao dịch hoàn có hóa đơn gốc được liên kết với HĐĐT điều chỉnh giảm và kết quả xử lý số lượng, giá trị hàng hoàn từ FBO | INVH-BR-002, ORD-BR-006 |
-| AC-009 | Gửi lại cùng giao dịch bán/hoàn sau lỗi hoặc mất phản hồi không tạo thêm chứng từ, hóa đơn hay thay đổi tồn lần nữa | INT-BR-001 |
-| AC-010 | Khi thanh toán thành công nhưng FBO chưa xử lý/lỗi/mất phản hồi, đơn là Đã thanh toán, vẫn giữ hàng và không tự hủy khi vượt T; khách không bị yêu cầu thanh toán lại | ORD-BR-007, ORD-BR-002 |
-| AC-011 | Sau đối chiếu hoặc gửi lại thành công, Website chuyển đơn sang Đã xuất HĐ và giải phóng lượng giữ đúng một lần cùng cập nhật tồn; có thể theo dõi lỗi và kết quả xử lý tiếp | ORD-BR-007, INT-BR-001, INT-BR-002 |
-| AC-012 | FBO đã ghi nhận bán và Website cập nhật tồn thành công nhưng HĐĐT lỗi: đơn vẫn Đã xuất HĐ, không giữ lại hàng hoặc ghi nhận bán lại; phần hóa đơn được theo dõi và xử lý tiếp riêng | ORD-BR-007, INVH-BR-001 |
+| AC-001 | Tính đúng khả dụng từ tồn thực tế, lượng chưa giao đang giữ và lượng giao chưa phản ánh, không tính giảm hai lần | INV-BR-001, INV-BR-002, ISS-004 |
+| AC-002 | Nhiều đơn xác nhận đồng thời không giữ vượt tồn khả dụng | ORD-BR-001 |
+| AC-003 | Đã xác nhận giữ toàn bộ phần chưa giao, Hoàn thành 1 phần chỉ giữ phần còn lại, Hoàn thành không giữ phần chưa giao; không giữ trước xác nhận | INV-BRU-002, ORD-BRU-006 |
+| AC-004 | Đơn 10 giao 4 rồi 6 tạo hai HĐBH, mỗi lần trừ đúng 4 hoặc 6; không xuất lại 10 ở mỗi lần | ORD-BR-003, ORD-BR-008 |
+| AC-005 | Mỗi lần giao có HĐĐT riêng, liên kết đúng HĐBH, đơn và lần giao | INVH-BR-001 |
+| AC-006 | Kiểm soát hoàn theo dòng giao, không vượt lượng của lần giao dù toàn đơn vẫn còn lượng ở lần khác | ORD-BR-005, ORD-BRU-004 |
+| AC-007 | Hàng hoàn đủ điều kiện bán tăng tồn theo FBO; hàng lỗi không tăng tồn bán online | INV-BR-003 |
+| AC-008 | Hoàn G001 điều chỉnh hóa đơn G001, không hóa đơn G002; yêu cầu có hàng từ hai lần giao được tách | INVH-BR-002 |
+| AC-009 | Gửi lại cùng lần giao/hoàn không tạo thêm chứng từ, trừ/nhập tồn hoặc hóa đơn | INT-BR-001 |
+| AC-010 | Giao thực tế nhưng FBO lỗi vẫn ghi đúng tiến độ, không bán lại lượng giao chưa phản ánh trong tồn | ORD-BR-007 |
+| AC-011 | Hủy phần chưa giao không nhập lại tồn hoặc điều chỉnh hóa đơn của phần đã giao | ORD-BR-004 |
+| AC-012 | HĐĐT lỗi xử lý tiếp riêng, không ghi nhận bán lại; hoàn không tự mở lại lượng giữ/giao | INVH-BRU-002, ORD-BRU-005 |
+| AC-013 | Tồn và HĐĐT mới được FBO chủ động đẩy dù Website không gọi tra cứu; gồm HĐĐT điều chỉnh. Callback lỗi/mất xác nhận được gửi lại, sự kiện trùng/cũ không gây xử lý lại hoặc ghi đè dữ liệu mới | INV-BR-001, INT-BR-003, INT-BRU-003 |
 
-Kiểm thử luồng đơn đã thanh toán sử dụng kết quả xác nhận có sẵn của Website làm đầu vào; việc xác thực giao dịch tiền và thực hiện hoàn tiền không thuộc nghiệm thu dự án này.
+## 10. Nội dung cần đặc tả tiếp
 
-Các tiêu chí trên là đầu vào cho UAT; test case chi tiết và dữ liệu kiểm thử sẽ được xây dựng theo SRS.
+### 10.1. ISS-004 - Đối chiếu tồn với từng lần giao
 
-## 10. Các tình huống cần đặc tả tiếp
+SRS cần liên kết phiên bản/mốc tồn với các lần giao đã phản ánh trong dữ liệu đó. Không chỉ nhìn trạng thái đơn hoặc API báo nhận thành công để bỏ lượng tạm loại. Nếu FBO đẩy tồn trước khi trả kết quả lần giao, Website phải đối chiếu để không trừ hai lần; nếu phản hồi cũ đến sau dữ liệu tồn mới, không ghi đè tồn mới bằng tồn lịch sử.
 
-Mã ISS dùng để theo dõi nội dung cần phân tích/đặc tả tiếp, không phải mã chức năng hoặc một quy trình đã được phê duyệt đầy đủ. Phần này định nghĩa các mã được tham chiếu trong luồng nghiệp vụ mục 7.
+### 10.2. ISS-007 - Hủy/hoàn khi lần giao hoặc hóa đơn chưa hoàn tất
 
-### 10.1. ISS-004 - Cập nhật nhất quán tồn thực tế và tồn bị giữ
-
-**Liên quan:** `INV-BR-002`, `ORD-BR-003`, `ORD-BR-007`, `INV-BRU-003`.
-
-**Tình huống:** FBO đã trừ tồn cho một đơn, nhưng Website nhận dữ liệu tồn mới và kết quả đồng bộ đơn ở các thời điểm khác nhau. Nếu tồn thực tế đã giảm mà Website vẫn trừ toàn bộ lượng giữ của đơn, cùng lượng hàng sẽ bị tính giảm hai lần. Ngược lại, nhả lượng giữ trước khi cập nhật tồn thực tế có thể làm tăng tồn khả dụng sai.
-
-**Nguyên tắc nghiệp vụ:** Website phải đối chiếu kết quả ghi nhận bán với lượng hàng đang giữ của đơn. Khi chuyển đơn sang Đã xuất HĐ, cập nhật tồn thực tế và giải phóng lượng giữ tương ứng phải bảo đảm nhất quán; gửi lại hoặc nhận lại cùng kết quả không được làm giảm/giải phóng tồn thêm lần nữa.
-
-### 10.2. ISS-007 - Hủy/hoàn khi giao dịch bán hoặc hóa đơn chưa hoàn tất
-
-**Liên quan:** `ORD-BR-005`, `ORD-BR-007`, `INVH-BR-002`, `INT-BR-001`.
-
-**Tình huống:** Website đã xác nhận thanh toán, khách yêu cầu hủy/hoàn, nhưng chưa biết chắc FBO đã ghi nhận bán hay chưa; hoặc FBO đã ghi nhận bán nhưng HĐĐT gốc chưa phát hành thành công.
-
-| Kết quả xác minh | Nguyên tắc xử lý |
+| Tình huống | Nguyên tắc |
 |---|---|
-| Chưa rõ FBO đã tạo HĐBH/trừ tồn hay chưa | Website phối hợp FBO đối chiếu giao dịch gốc. Không tự nhả tồn, tạo chứng từ trả hàng hoặc gửi lại yêu cầu bán như một giao dịch mới |
-| Xác nhận FBO chưa ghi nhận bán | Cần xác định cách dừng yêu cầu đồng bộ đang chờ/đang xử lý và xác nhận giao dịch không thể tiếp tục ghi nhận bán trước khi kết thúc đơn, giải phóng lượng giữ. Không tạo nghiệp vụ nhập lại hàng cho giao dịch chưa xuất kho |
-| FBO đã ghi nhận bán và đã có HĐĐT gốc | Xử lý hủy/hoàn theo mục 7.4, xử lý tồn theo tình trạng hàng và lập HĐĐT điều chỉnh giảm theo mục 7.4.1 |
-| FBO đã ghi nhận bán nhưng HĐĐT gốc chưa hoàn tất | Theo dõi riêng kết quả bán hàng và hóa đơn. Không mặc định có thể lập HĐĐT điều chỉnh giảm khi chưa có hóa đơn gốc; phải xác định trình tự xử lý với FBO/Portal trước khi thực hiện |
+| Không rõ lần giao đã được FBO tạo HĐBH/trừ tồn chưa | Đối chiếu đúng mã lần giao, không gửi lại như lần mới hoặc tự cộng tồn |
+| Chưa giao thực tế và chưa xuất FBO | Hủy phần chưa giao theo chính sách Website; không tạo nhập lại hàng |
+| Lần giao thực tế đã xảy ra nhưng FBO chưa ghi nhận bán | Không coi là hủy hàng chưa giao; xác định trình tự ghi nhận/đảo giao dịch theo tình trạng thực tế với FBO |
+| FBO đã ghi nhận lần giao và có HĐĐT gốc | Hoàn đúng dòng giao, chứng từ bán và hóa đơn gốc của lần giao |
+| FBO đã ghi nhận lần giao nhưng HĐĐT gốc chưa hoàn tất | Theo dõi riêng; xác định trình tự xử lý hóa đơn với FBO/Portal, không điều chỉnh hóa đơn lần giao khác |
+
+### 10.3. ISS-008 - Điểm chốt giao hàng và chính sách số lượng
+
+SRS cần chốt thao tác xác nhận một lần giao thực tế, chỉnh/hủy lần giao ghi sai, chính sách hủy phần chưa giao và biểu diễn kết thúc đơn sau hủy. Vì chỉ giữ sau xác nhận, cần chính sách khi khách đã trả tiền nhưng không đủ tồn ở thời điểm xác nhận. Quy tắc phân bổ chiết khấu/thuế/giá trị từng lần giao và từng lần hoàn cần thống nhất, tổng các lần không vượt giá trị/số lượng hợp lệ của đơn.
+
+## 11. Lịch sử thay đổi
+
+| Ngày | Phiên bản | Thay đổi |
+|---|---|---|
+| 06/10/2026 | 1.0 | Baseline theo mô hình bán khi thanh toán, được chốt trong chat |
+| 08/10/2026 | 1.1 | Đổi sang giữ phần chưa giao, trạng thái theo tiến độ giao, bán/HĐĐT theo lần giao, hoàn chỉ định lần giao và hóa đơn gốc; cập nhật các mã hiện hành và ghi nhận mã ngừng áp dụng |
+| 08/10/2026 | 1.2 | FBO chủ động đẩy tồn và kết quả bán/hoàn/HĐĐT mới; Website cung cấp API nhận và xác nhận; bổ sung retry, chống trùng và sự kiện cũ |
+
+Bản PDF đã xuất ngày 06/10/2026 thuộc mô hình cũ, không đại diện cho phiên bản 1.1.

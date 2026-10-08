@@ -10,6 +10,7 @@ const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').repla
 (async () => {
   const { marked } = await import(pathToFileURL(deps + 'marked/lib/marked.esm.js').href);
   const markdown = fs.readFileSync(path.join(root, 'TOM_TAT_YEU_CAU_GIAI_PHAP_API.md'), 'utf8');
+  const updatedDate = markdown.match(/Ngày cập nhật: (\d{2}\/\d{2}\/\d{4})/)[1];
   const diagrams = [];
   const prepared = markdown.replace(/```mermaid\s*\r?\n([\s\S]*?)```/g, (_, source) => {
     const index = diagrams.push(source.trim()) - 1;
@@ -67,6 +68,16 @@ const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').repla
     const error = await page.evaluate(() => window.diagramError);
     if (error) throw new Error(error);
     const dimensions = await page.evaluate(() => {
+      const firstDiagram = document.querySelector('.diagram svg');
+      if (firstDiagram) firstDiagram.style.maxHeight='175mm';
+      document.querySelectorAll('table').forEach(table => {
+        if (table.querySelector('th')?.textContent === 'Yêu cầu') {
+          table.querySelectorAll('tr').forEach(row => {
+            if (row.children[0]) row.children[0].style.width='73%';
+            if (row.children[1]) row.children[1].style.width='27%';
+          });
+        }
+      });
       document.querySelectorAll('h3').forEach(h => {
         if (/^2\.[2-4]\.|^3\.[2-6]\./.test(h.textContent)) h.classList.add('new-page');
       });
@@ -78,7 +89,7 @@ const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').repla
     const output = path.join(root,'output/pdf/PhuongThao_YeuCau_GiaiPhap_API.pdf');
     await page.pdf({path:output,format:'A4',printBackground:true,preferCSSPageSize:true,displayHeaderFooter:true,
       headerTemplate:'<div style="font-family:Arial;font-size:8px;width:100%;margin:0 14mm;color:#687680">PHƯƠNG THẢO | YÊU CẦU, GIẢI PHÁP VÀ API</div>',
-      footerTemplate:'<div style="font-family:Arial;font-size:8px;width:100%;margin:0 14mm;color:#687680;display:flex;justify-content:space-between"><span>06/10/2026 | Đặc tả API cơ bản</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>'});
+      footerTemplate:`<div style="font-family:Arial;font-size:8px;width:100%;margin:0 14mm;color:#687680;display:flex;justify-content:space-between"><span>${updatedDate} | Đặc tả API cơ bản</span><span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>`});
     console.log(JSON.stringify({output,diagrams:dimensions}));
   } finally {
     if (browser) await browser.close();
