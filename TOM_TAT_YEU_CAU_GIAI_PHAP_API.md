@@ -2,7 +2,7 @@
 
 Ngày cập nhật: 08/10/2026. Cơ sở: BRD PT-BRD-001 phiên bản 1.2, cập nhật theo yêu cầu giao hàng nhiều lần và FBO chủ động đẩy dữ liệu mới.
 
-URL và trường JSON là đề xuất để thống nhất với đội Website/FAST; địa chỉ môi trường, trường bắt buộc, HTTP status và mã lỗi chốt trong SRS. Bản này thay thế mô hình xuất hóa đơn ngay khi thanh toán của bản ngày 06/10/2026 và là cơ sở cho PDF cập nhật ngày 08/10/2026.
+URL và trường JSON là đề xuất để thống nhất với đội Website/FAST; địa chỉ môi trường, trường bắt buộc, HTTP status và mã lỗi chốt trong SRS. Bản này thay thế mô hình xuất hóa đơn ngay khi thanh toán của bản ngày 06/10/2026.
 
 ## 1. Yêu cầu
 

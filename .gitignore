@@ -1,2 +1,4 @@
 pull.bat
 push.bat
+node_modules/
+npm-cache/
