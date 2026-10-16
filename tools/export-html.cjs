@@ -1,17 +1,14 @@
-// Export the project Markdown documents to self-contained HTML in output/html.
-// The Mermaid library is embedded, so diagrams render when the page opens
-// (no network, no server). To print, open the HTML and use the browser's Print.
-// Usage: node tools/export-html.cjs            (all documents)
-//        node tools/export-html.cjs BRD.md     (selected documents)
+// Export each business folder's docs/*.md to self-contained HTML in its output/
+// (docs/X.md -> output/X.html). The Mermaid library is embedded, so diagrams
+// render when the page opens (no network, no server). To print, use the browser's Print.
+// Usage: node tools/export-html.cjs                                  (every business folder)
+//        node tools/export-html.cjs 01.Ket_noi_website_1             (one folder)
+//        node tools/export-html.cjs 01.Ket_noi_website_1/docs/BRD_PhuongThao.md   (one document)
 const fs = require('fs');
 const path = require('path');
 const { marked } = require('./node_modules/marked/lib/marked.esm.js');
 
 const root = path.resolve(__dirname, '..');
-const documents = {
-  'BRD.md': 'BRD_PhuongThao.html',
-  'TOM_TAT_YEU_CAU_GIAI_PHAP_API.md': 'PhuongThao_YeuCau_GiaiPhap_API.html',
-};
 const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const mermaidJs = fs.readFileSync(path.join(__dirname, 'node_modules/mermaid/dist/mermaid.min.js'), 'utf8');
 
@@ -34,13 +31,20 @@ pre { background:#f3f6f8; border:1px solid #d9e1e6; padding:3mm; margin:2mm 0 4m
 .diagram svg { max-width:100% !important; height:auto; max-height:225mm; }
 @media print { body { padding:0; max-width:none; } h1 { margin-top:0; } }`;
 
-const selected = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(documents);
-const outDir = path.join(root, 'output/html');
-fs.mkdirSync(outDir, { recursive: true });
-for (const name of selected) {
-  if (!documents[name]) throw new Error('Unknown document: ' + name);
-  const markdown = fs.readFileSync(path.join(root, name), 'utf8');
-  const title = (markdown.match(/^# (.+)$/m) || [, name])[1];
+// Business folders are the root folders that contain docs/ (the _mau template has no .md).
+const markdownIn = dir => fs.existsSync(dir)
+  ? fs.readdirSync(dir).filter(f => f.endsWith('.md')).map(f => path.join(dir, f)) : [];
+const args = process.argv.slice(2);
+const targets = args.length ? args : fs.readdirSync(root).filter(d => fs.existsSync(path.join(root, d, 'docs')));
+const sources = targets.flatMap(target => {
+  const full = path.resolve(root, target);
+  if (!fs.existsSync(full)) throw new Error('Not found: ' + target);
+  return fs.statSync(full).isDirectory() ? markdownIn(path.join(full, 'docs')) : [full];
+});
+for (const source of sources) {
+  const name = path.relative(root, source);
+  const markdown = fs.readFileSync(source, 'utf8');
+  const title = (markdown.match(/^# (.+)$/m) || [, path.basename(source)])[1];
   const diagrams = [];
   const prepared = markdown.replace(/```mermaid\s*\r?\n([\s\S]*?)```/g, (_, source) => {
     diagrams.push(source);
@@ -55,7 +59,9 @@ for (const name of selected) {
 mermaid.initialize({ startOnLoad:false, theme:'neutral', fontFamily:'Arial', sequence:{ mirrorActors:false } });
 mermaid.run();
 </script></body></html>`;
-  const file = path.join(outDir, documents[name]);
+  const outDir = path.join(path.dirname(path.dirname(source)), 'output');
+  fs.mkdirSync(outDir, { recursive: true });
+  const file = path.join(outDir, path.basename(source, '.md') + '.html');
   fs.writeFileSync(file, html);
   console.log(JSON.stringify({ source: name, diagrams: diagrams.length, html: path.relative(root, file) }));
 }

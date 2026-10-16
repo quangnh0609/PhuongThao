@@ -322,4 +322,4 @@ Cần chốt trình tự khi khách hoàn hàng thuộc lần giao mà FBO chưa
 | 08/10/2026 | 1.2 | FBO chủ động đẩy tồn và kết quả bán/hoàn/HĐĐT mới; Website cung cấp API nhận và xác nhận; bổ sung retry, chống trùng và sự kiện cũ |
 | 15/10/2026 | 1.3 | Gộp lượng đã giao chờ tạo HĐBH vào tồn bị giữ; phản hồi tạo HĐBH kèm tồn mới và phiên bản tồn; Website gọi bù qua hàng đợi retry; hoàn khi HĐĐT gốc chưa hoàn tất; Website phân bổ giá trị; bộ mã hai bên khớp nhau. Thêm INT-BR-004, INVH-BR-003, ORD-BR-009, INT-BRU-004, INVH-BRU-003, ORD-BRU-009, AC-014 đến AC-016, ISS-009; đóng ISS-004, ISS-007 |
 
-Từ 15/10/2026 tài liệu được xuất dạng HTML tại `output/html/`; các bản PDF cũ đã bỏ.
+Từ 15/10/2026 tài liệu được xuất dạng HTML tại `output/` của thư mục nghiệp vụ; các bản PDF cũ đã bỏ.
