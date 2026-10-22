@@ -17,7 +17,7 @@ tools/      Script xuất HTML (node_modules bị gitignore; khôi phục bằng
 
 1. Người dùng copy tài liệu vào `<nghiệp vụ>/input/` rồi ra yêu cầu.
 2. Claude đọc `input/`, soạn/cập nhật Markdown trong `<nghiệp vụ>/docs/`. Sơ đồ dùng khối ```` ```mermaid ````.
-3. Xuất HTML: `node tools/export-html.cjs <thư mục nghiệp vụ>` (hoặc đường dẫn 1 file .md; không tham số = xuất tất cả).
-4. Chỉ xuất HTML, không tạo PDF.
+3. Mặc định chỉ soạn Markdown và sơ đồ Mermaid trong `docs/`; không tự động tạo hoặc cập nhật HTML.
+4. Chỉ khi người dùng yêu cầu xuất để gửi đi hoặc yêu cầu HTML rõ ràng, xuất HTML: `node tools/export-html.cjs <thư mục nghiệp vụ>` (hoặc đường dẫn 1 file .md; không tham số = xuất tất cả). Không tạo PDF trừ khi người dùng yêu cầu rõ ràng.
 
 Tạo nghiệp vụ mới: copy `_mau/` thành `NN.Ten_nghiep_vu_K/` (số tiếp theo). Mỗi nghiệp vụ độc lập; chỉ tham chiếu chéo khi người dùng yêu cầu.

@@ -1,0 +1,319 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Danh sách tính năng KHSX</title><style>
+@page { size:A4; margin:16mm 14mm 17mm; }
+* { box-sizing:border-box; }
+body { font-family:Arial,sans-serif; font-size:10pt; line-height:1.42; color:#202a35; margin:0 auto; padding:0 16px; max-width:210mm; background:#fff; }
+h1 { font-size:23pt; line-height:1.22; color:#203d50; padding-bottom:6mm; border-bottom:2px solid #2a6873; margin:6mm 0 7mm; }
+h2 { font-size:16pt; color:#203d50; margin:8mm 0 5mm; break-after:avoid; }
+h3 { font-size:12pt; color:#203d50; margin:5mm 0 3mm; break-after:avoid; }
+p { margin:0 0 3mm; } li { margin:1mm 0; } ul { padding-left:6mm; }
+table { border-collapse:collapse; width:100%; margin:3mm 0 5mm; font-size:9pt; }
+th,td { border:1px solid #bac6cd; padding:1.8mm; vertical-align:top; overflow-wrap:anywhere; line-height:1.3; }
+th { background:#edf3f5; text-align:left; color:#203d50; font-weight:700; }
+thead { display:table-header-group; } tr { break-inside:avoid; } tbody tr:nth-child(even) { background:#f8fafb; }
+code { font-family:Consolas,monospace; font-size:0.9em; color:#334c5b; overflow-wrap:anywhere; }
+pre { background:#f3f6f8; border:1px solid #d9e1e6; padding:3mm; margin:2mm 0 4mm; white-space:pre-wrap; overflow-wrap:anywhere; break-inside:avoid; line-height:1.26; }
+.diagram { text-align:center; break-inside:avoid; margin:2mm 0 4mm; overflow-x:auto; }
+.diagram pre.mermaid { margin:0; padding:0; border:0; background:none; white-space:pre; font-family:Arial,sans-serif; }
+.diagram svg { max-width:100% !important; height:auto; max-height:225mm; }
+@media print { body { padding:0; max-width:none; } h1 { margin-top:0; } }</style></head><body><h1>Danh sách tính năng module kế hoạch sản xuất</h1>
+<p>Quy ước trạng thái theo yêu cầu người dùng: các tính năng đã phát triển trong hồ sơ/HDSD ghi <strong>Nghiệm thu</strong>; các hạng mục thuộc báo giá bổ sung ngày 10/03/2026 ghi <strong>Báo giá</strong>. Đây là quy ước quản lý danh sách, không thay thế biên bản nghiệm thu. Một chức năng có thể có phần nền tảng đã nghiệm thu và phần mở rộng đang báo giá.</p>
+<h2>Các tính năng đã phát triển</h2>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Tính năng</th>
+<th>Phạm vi</th>
+<th>Trạng thái</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Khai báo tham số</td>
+<td>Kho tổng bán lẻ, kho tổng trường, kho chung và danh sách email nhận thông báo duyệt.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Định mức nguyên vật liệu BOM</td>
+<td>Khai báo định mức, tính nguyên vật liệu để in hồ sơ LSX.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Kế hoạch gọi hàng năm</td>
+<td>Nhu cầu bán lẻ từ số bán năm trước và tăng trưởng do người dùng nhập.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Kế hoạch sản xuất năm</td>
+<td>Bán lẻ kế thừa nhu cầu, trừ tồn kho; kênh trường nhập thủ công; theo dõi SL đã phát lệnh và đã gọi hàng.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Phiếu gọi hàng bán lẻ</td>
+<td>Theo kế hoạch hoặc bổ sung; KH xác nhận và chọn tính hoạch định.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Phiếu gọi hàng trường</td>
+<td>Ghi nhận nhu cầu trường; KH xác nhận và chọn tính hoạch định.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Phiếu gọi hàng công sở</td>
+<td>Ghi nhận nhu cầu; mẫu in may đo, may size.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Duyệt phiếu gọi hàng</td>
+<td>Duyệt/bỏ duyệt theo kênh, gửi email thông báo.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Khai báo luồng duyệt công sở</td>
+<td>Kiểu duyệt theo bộ phận và loại chứng từ; quyền duyệt, người duyệt theo HDSD 04/2026.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Điều chuyển giữa phiếu gọi hàng</td>
+<td>Ghi giảm nhu cầu phiếu xuất, ghi tăng nhu cầu phiếu nhận; theo dõi điều chuyển.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Hoạch định thành phẩm</td>
+<td>Chọn PGH; cân đối tồn kho kênh, kho chung, đã hoạch định, dở dang LSX; tính SL cần thêm. Phạm vi mô tả rõ: bán lẻ và trường.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Ưu tiên và lưu kết quả hoạch định</td>
+<td>Sắp theo ngày cần hàng; ưu tiên kho kênh trước kho chung; điều chỉnh và lưu phiếu.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Lập lệnh sản xuất</td>
+<td>Kế thừa PGH, kế hoạch năm hoặc phiếu hoạch định; tổng hợp theo mã hàng.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Hồ sơ giao gia công</td>
+<td>Tính BOM, đính kèm hồ sơ trên LSX, in và gửi email nhà gia công.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Nhập kho và phân bổ thành phẩm</td>
+<td>Lấy PGH từ LSX; phân bổ theo hệ số hoặc từ trên xuống.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Bảng kê phiếu gọi hàng</td>
+<td>Theo dõi chi tiết, cảnh báo quá hạn, đánh dấu dừng sản xuất.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Báo cáo tiến độ sản xuất</td>
+<td>Theo LSX chi tiết và tổng hợp, theo dõi SL trên lệnh và đã nhập kho.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Báo cáo điều chuyển PGH</td>
+<td>Theo dõi số lượng điều chuyển giữa các phiếu gọi hàng.</td>
+<td>Nghiệm thu</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Báo cáo kế hoạch sản xuất năm</td>
+<td>Theo dõi thực hiện kế hoạch sản xuất năm.</td>
+<td>Nghiệm thu</td>
+</tr>
+</tbody></table>
+<h2>Các tính năng trong báo giá bổ sung</h2>
+<table>
+<thead>
+<tr>
+<th>STT</th>
+<th>Chức năng</th>
+<th>Tính năng bổ sung</th>
+<th>Trạng thái</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>20</td>
+<td>PGH công sở</td>
+<td>Thêm mã giao dịch 4 – May mẫu.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>21</td>
+<td>PGH công sở</td>
+<td>Thêm mã bộ phận phục vụ duyệt và phân quyền.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>22</td>
+<td>PGH công sở</td>
+<td>Tab Tổng hợp và Chi tiết chỉ chọn mã thành phẩm, loại vật tư 51.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>23</td>
+<td>PGH công sở</td>
+<td>Thêm Logo, VAT, Tên VAT, Tên viết HĐ cho giao dịch 1, 2; Ghi chú cho giao dịch 1–4.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>24</td>
+<td>PGH công sở</td>
+<td>Thêm Tình trạng sản phẩm, Yêu cầu khách hàng, ĐTCTT, Nguyên nhân cho giao dịch 3.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>25</td>
+<td>PGH công sở</td>
+<td>Thêm Mô tả phụ liệu, Kiểu dáng, In/thêu, Vải mẫu, SL dự kiến sản xuất, Quản lý mẫu cho giao dịch 4.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>26</td>
+<td>PGH công sở</td>
+<td>Lấy các giá trị bổ sung từ tab Tổng hợp sang tab Chi tiết.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>27</td>
+<td>PGH công sở</td>
+<td>Quyền xem phiếu của nhân viên cấp dưới và các cấp dưới tiếp theo.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>28</td>
+<td>PGH công sở</td>
+<td>Mẫu in may mẫu; lấy dữ liệu in từ tab Tổng hợp; thêm 3 mẫu in PDF cho giao dịch 1, 2, 3.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>29</td>
+<td>Phiếu hoạch định</td>
+<td>Đổi tên cột Tồn kho thành Tồn kho kênh.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>30</td>
+<td>Phiếu hoạch định</td>
+<td>Khi lưu, tạo phiếu xuất điều chuyển một bước từ kho chung về kho riêng.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>31</td>
+<td>Phiếu hoạch định</td>
+<td>Gửi email thông tin phiếu xuất điều chuyển theo danh sách cấu hình.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Lệnh sản xuất</td>
+<td>Thêm trường Tổng cộng SL gọi hàng.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>33</td>
+<td>LSX – Nguyên vật liệu</td>
+<td>Thêm/xóa dòng, cho phép trống mã vật tư và nhập tên vật tư; bỏ trường Giới tính, Chủng loại.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>34</td>
+<td>LSX – Nguyên vật liệu</td>
+<td>Thêm SL thực xuất và SL yêu cầu xuất kho = SL theo định mức × (1 + % cho phép).</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>35</td>
+<td>LSX – Chi tiết</td>
+<td>Thêm Đơn giá, Thành tiền, Loại vải chính, Logo, Ngày trả.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>36</td>
+<td>LSX – Chi tiết</td>
+<td>Nút Cập nhật SL thực tế: mặc định SL thực tế bằng SL gọi hàng.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>37</td>
+<td>LSX – Kế thừa PGH</td>
+<td>Hiển thị tên chứng từ để phân biệt loại phiếu gọi hàng.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>38</td>
+<td>LSX – Tệp đính kèm</td>
+<td>Hiển thị tệp từ PGH sang LSX và cho chọn gửi kèm khi soạn email.</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>39</td>
+<td>Báo cáo tiến độ LSX</td>
+<td>Ẩn/hiện mã và tên gia công theo danh sách user được phép xem.</td>
+<td>Báo giá</td>
+</tr>
+</tbody></table>
+<p>Chi phí báo giá được tính theo 4 nhóm, không phải từng dòng tính năng:</p>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th align="right">Chi phí VNĐ</th>
+<th>Trạng thái</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Phiếu gọi hàng công sở</td>
+<td align="right">35.000.000</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>Phiếu hoạch định</td>
+<td align="right">3.000.000</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>Lệnh sản xuất</td>
+<td align="right">6.000.000</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td>Báo cáo tiến độ LSX</td>
+<td align="right">1.000.000</td>
+<td>Báo giá</td>
+</tr>
+<tr>
+<td><strong>Tổng</strong></td>
+<td align="right"><strong>45.000.000</strong></td>
+<td><strong>Báo giá</strong></td>
+</tr>
+</tbody></table>
+<p>Mã bộ phận trên PGH vẫn ghi Báo giá vì thuộc phạm vi báo giá; khai báo luồng duyệt ghi Nghiệm thu theo HDSD 2026. Hai dòng phản ánh hai phạm vi khác nhau.</p>
+<h2>Nguồn</h2>
+<ul>
+<li>HSKS.2025.PHUONGTHAO_Final.docx.</li>
+<li>HDSD.2025.PHUONGTHAO.docx.</li>
+<li>HDSD.2026. Khai báo luồng duyệt PGH công sở.docx.</li>
+<li>Báo giá bổ sung tính năng phần mềm Fast Business Online_Công ty Đồng Phục Phương Thảo_QLSX.doc, ngày 10/03/2026.</li>
+</ul>
+</body></html>

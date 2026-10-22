@@ -1,0 +1,161 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tóm tắt KHSX và GAP</title><style>
+@page { size:A4; margin:16mm 14mm 17mm; }
+* { box-sizing:border-box; }
+body { font-family:Arial,sans-serif; font-size:10pt; line-height:1.42; color:#202a35; margin:0 auto; padding:0 16px; max-width:210mm; background:#fff; }
+h1 { font-size:23pt; line-height:1.22; color:#203d50; padding-bottom:6mm; border-bottom:2px solid #2a6873; margin:6mm 0 7mm; }
+h2 { font-size:16pt; color:#203d50; margin:8mm 0 5mm; break-after:avoid; }
+h3 { font-size:12pt; color:#203d50; margin:5mm 0 3mm; break-after:avoid; }
+p { margin:0 0 3mm; } li { margin:1mm 0; } ul { padding-left:6mm; }
+table { border-collapse:collapse; width:100%; margin:3mm 0 5mm; font-size:9pt; }
+th,td { border:1px solid #bac6cd; padding:1.8mm; vertical-align:top; overflow-wrap:anywhere; line-height:1.3; }
+th { background:#edf3f5; text-align:left; color:#203d50; font-weight:700; }
+thead { display:table-header-group; } tr { break-inside:avoid; } tbody tr:nth-child(even) { background:#f8fafb; }
+code { font-family:Consolas,monospace; font-size:0.9em; color:#334c5b; overflow-wrap:anywhere; }
+pre { background:#f3f6f8; border:1px solid #d9e1e6; padding:3mm; margin:2mm 0 4mm; white-space:pre-wrap; overflow-wrap:anywhere; break-inside:avoid; line-height:1.26; }
+.diagram { text-align:center; break-inside:avoid; margin:2mm 0 4mm; overflow-x:auto; }
+.diagram pre.mermaid { margin:0; padding:0; border:0; background:none; white-space:pre; font-family:Arial,sans-serif; }
+.diagram svg { max-width:100% !important; height:auto; max-height:225mm; }
+@media print { body { padding:0; max-width:none; } h1 { margin-top:0; } }</style></head><body><h1>Tóm tắt module lập kế hoạch sản xuất và GAP</h1>
+<p>Phạm vi: Đối chiếu hồ sơ khảo sát năm 2025, HDSD tháng 12/2025, báo giá bổ sung ngày 10/03/2026 và HDSD khai báo luồng duyệt tháng 04/2026 trong thư mục input. Chức năng được mô tả trong HDSD là căn cứ về cách sử dụng; báo giá là phạm vi đề xuất bổ sung, chưa chứng minh đã triển khai hoặc nghiệm thu. GAP dưới đây phân biệt yêu cầu bổ sung đã ghi nhận và vấn đề cần xác minh.</p>
+<h2>1. Bài toán về module lập kế hoạch sản xuất</h2>
+<p>Phương Thảo cần liên kết nhu cầu gọi hàng, tồn kho, hàng đang sản xuất và kết quả nhập kho để xác định <strong>cần sản xuất thêm bao nhiêu, phục vụ phiếu gọi hàng nào</strong>, đồng thời theo dõi việc giao nhà gia công và đáp ứng nhu cầu từng kênh.</p>
+<ul>
+<li><strong>Nhu cầu nhiều kênh:</strong> Bán lẻ, trường học và công sở. Có kế hoạch năm và nhu cầu bổ sung phát sinh; phiếu gọi hàng phải qua duyệt/xác nhận theo nghiệp vụ.</li>
+<li><strong>Cân đối nguồn đáp ứng:</strong> Tận dụng tồn kho từng kênh, tồn kho chung, phần đã hoạch định và phần dở dang trên lệnh sản xuất để hạn chế phát lệnh dư hoặc thiếu.</li>
+<li><strong>Ưu tiên và điều chuyển:</strong> Phân bổ theo ngày cần hàng, cho phép điều chỉnh thứ tự; điều chuyển số lượng giữa các phiếu gọi hàng, kể cả khác kênh, và xác định có cần sản xuất bù hay không.</li>
+<li><strong>Phát lệnh và giao gia công:</strong> Tổng hợp nhu cầu thành lệnh sản xuất, kèm định mức nguyên vật liệu, bảng size, mẫu biểu và hồ sơ đính kèm.</li>
+<li><strong>Theo dõi thực hiện:</strong> Nhập kho thành phẩm, phân bổ cho phiếu gọi hàng, theo dõi tiến độ lệnh sản xuất và tình hình thực hiện kế hoạch năm.</li>
+</ul>
+<p>Lưu ý phạm vi: Tài liệu hoạch định năm 2025 tập trung vào bán lẻ và trường; công sở có quy trình phiếu gọi hàng và phát lệnh nhưng chưa có mô tả rõ việc tham gia cùng thuật toán hoạch định hai kênh này.</p>
+<h2>2. Giải pháp mà FBO đáp ứng</h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm nghiệp vụ</th>
+<th>Giải pháp được mô tả trong hồ sơ/HDSD</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kế hoạch năm</td>
+<td>Kế hoạch gọi hàng bán lẻ lấy số bán năm trước cộng mức tăng trưởng do người dùng nhập. Kế hoạch sản xuất bán lẻ kế thừa nhu cầu và trừ tồn tại thời điểm lập; kế hoạch kênh trường nhập thủ công. Hồ sơ khảo sát có yêu cầu import Excel.</td>
+</tr>
+<tr>
+<td>Phiếu gọi hàng</td>
+<td>Quản lý phiếu bán lẻ, trường và công sở; duyệt/bỏ duyệt, gửi email thông báo. Bán lẻ và trường có bước KH xác nhận và tích chọn tính hoạch định.</td>
+</tr>
+<tr>
+<td>Hoạch định thành phẩm</td>
+<td>Chọn phiếu gọi hàng, sắp xếp theo ngày cần hàng, lấy nguồn đáp ứng và tính số lượng cần thêm. Ưu tiên tồn kho kênh trước, sau đó tồn kho chung; trừ lần lượt theo thứ tự dòng. Cho phép kiểm tra, điều chỉnh và lưu kết quả.</td>
+</tr>
+<tr>
+<td>Phát lệnh sản xuất</td>
+<td>Kế thừa phiếu gọi hàng, kế hoạch năm hoặc phiếu hoạch định; tổng hợp theo mã hàng; tính nguyên vật liệu theo BOM; in bộ hồ sơ và gửi email nhà gia công.</td>
+</tr>
+<tr>
+<td>Điều chuyển nhu cầu</td>
+<td>Phiếu điều chuyển giữa các phiếu gọi hàng ghi giảm phiếu xuất, ghi tăng phiếu nhận. Hồ sơ khảo sát mô tả xử lý dừng sản xuất hoặc lập lệnh bổ sung khi cần sản xuất bù.</td>
+</tr>
+<tr>
+<td>Nhập kho và phân bổ</td>
+<td>Lấy phiếu gọi hàng từ lệnh sản xuất và phân bổ thành phẩm nhập kho theo hệ số hoặc theo thứ tự từ trên xuống.</td>
+</tr>
+<tr>
+<td>Báo cáo</td>
+<td>Bảng kê phiếu gọi hàng và cảnh báo quá hạn; tiến độ LSX chi tiết/tổng hợp; theo dõi điều chuyển giữa các phiếu gọi hàng; thực hiện kế hoạch sản xuất năm.</td>
+</tr>
+<tr>
+<td>Luồng duyệt công sở</td>
+<td>HDSD tháng 04/2026 mô tả khai báo kiểu duyệt theo bộ phận/loại chứng từ, quyền duyệt và người duyệt.</td>
+</tr>
+</tbody></table>
+<p>Theo HDSD 2025, công thức hiển thị là:</p>
+<p><strong>SL cần thêm = SL gọi hàng − SL tồn kho kênh − SL tồn kho chung − SL đã hoạch định − SL dở dang LSX.</strong></p>
+<p>Hồ sơ khảo sát giải thích tồn khả dụng phải trừ phần đã giữ chỗ; phần đã hoạch định và dở dang là nguồn đáp ứng tương lai còn lại. Khi triển khai cần thống nhất định nghĩa từng số để tránh trừ trùng.</p>
+<h2>3. Điểm bất cập GAP</h2>
+<h3>3.1 Các nhu cầu bổ sung đã được ghi nhận trong báo giá</h3>
+<table>
+<thead>
+<tr>
+<th>GAP</th>
+<th>Nội dung bổ sung FAST đề xuất</th>
+<th>Ý nghĩa nghiệp vụ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>G01. Liên kết hoạch định với điều chuyển kho</td>
+<td>Khi lưu phiếu hoạch định, tạo phiếu xuất điều chuyển một bước từ kho chung về kho riêng; gửi email theo danh sách cấu hình; đổi tên cột thành “Tồn kho kênh”.</td>
+<td>Gắn phần tồn kho chung được phân bổ với chứng từ điều chuyển kho cụ thể. Cần phân biệt với điều chuyển nhu cầu giữa các phiếu gọi hàng đã có.</td>
+</tr>
+<tr>
+<td>G02. Thông tin quản lý nguyên vật liệu trên LSX</td>
+<td>Thêm/xóa dòng, cho phép trống mã và nhập tên vật tư; thêm SL thực xuất, SL yêu cầu xuất kho = SL định mức × (1 + % cho phép).</td>
+<td>Bổ sung khả năng ghi nhận nhu cầu xuất và lượng xuất thực tế ngoài dữ liệu BOM phục vụ mẫu in. Báo giá chưa mô tả tự động lập phiếu xuất kho.</td>
+</tr>
+<tr>
+<td>G03. Thông tin chi tiết và hồ sơ LSX</td>
+<td>Thêm tổng SL gọi hàng; đơn giá, thành tiền, loại vải chính, logo, ngày trả; nút điền SL thực tế bằng SL gọi hàng; phân biệt loại PGH khi kế thừa; kế thừa và gửi kèm tệp từ PGH.</td>
+<td>Giảm nhập lại và bổ sung thông tin giao gia công. Nút điền mặc định SL thực tế chưa phải bằng chứng về số thực hiện.</td>
+</tr>
+<tr>
+<td>G04. Nghiệp vụ phiếu gọi hàng công sở</td>
+<td>Thêm giao dịch may mẫu, mã bộ phận, thông tin theo loại giao dịch, giới hạn chọn thành phẩm, đồng bộ tổng hợp xuống chi tiết, mẫu in và quyền xem theo cấp dưới.</td>
+<td>Hoàn thiện dữ liệu đầu vào và quyền truy cập cho công sở/may mẫu.</td>
+</tr>
+<tr>
+<td>G05. Bảo mật thông tin gia công</td>
+<td>Ẩn/hiện mã và tên gia công trên báo cáo tiến độ theo danh sách user được phép.</td>
+<td>Hạn chế lộ thông tin nhà gia công trên các báo cáo được nêu trong báo giá.</td>
+</tr>
+</tbody></table>
+<p>Báo giá ngày 10/03/2026: PGH công sở 35 triệu, phiếu hoạch định 3 triệu, LSX 6 triệu, báo cáo tiến độ 1 triệu; tổng 45 triệu đồng. Đây là hạng mục chào bổ sung, cần đối chiếu nghiệm thu để biết trạng thái thực tế.</p>
+<h3>3.2 Các GAP hoặc quy tắc cần xác minh thêm</h3>
+<p>Các điểm dưới đây là nhận định qua đối chiếu tài liệu, không phải kết luận phần mềm đang có lỗi.</p>
+<table>
+<thead>
+<tr>
+<th>Điểm cần làm rõ</th>
+<th>Căn cứ và ảnh hưởng</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Chống tính trùng nhu cầu và nguồn đáp ứng</td>
+<td>HSKS mô tả nhu cầu còn lại đã trừ phần ra lệnh/nhập kho/hoạch định; HDSD lại nêu công thức trừ các nguồn đáp ứng trên SL gọi hàng. Cần chốt cách tính, giữ chỗ và chuyển số giữa hoạch định → LSX → nhập kho, nhất là khi chạy nhiều phiếu.</td>
+</tr>
+<tr>
+<td>Sửa, hủy, tính lại và lưu nhiều lần</td>
+<td>Chưa có quy tắc đầy đủ về hoàn trả giữ chỗ, cập nhật lệnh đã phát, đảo điều chuyển kho và ngăn tạo chứng từ trùng khi sửa/hủy/lưu lại phiếu hoạch định.</td>
+</tr>
+<tr>
+<td>Nguồn cung có về kịp ngày cần hàng hay không</td>
+<td>Có ưu tiên theo ngày cần hàng nhưng chưa mô tả cách chỉ sử dụng hàng dở dang/hoạch định có ngày hoàn thành phù hợp. Có đủ số lượng tổng chưa chứng minh đáp ứng đúng hạn.</td>
+</tr>
+<tr>
+<td>Lập lịch theo năng lực sản xuất</td>
+<td>Chưa thấy mô tả tính tải nhà gia công/chuyền, lịch công đoạn, thời gian sản xuất và tự động xếp lịch. Nếu mục tiêu cải tiến bao gồm những việc này thì cần bổ sung phạm vi.</td>
+</tr>
+<tr>
+<td>Hoạch định nguyên vật liệu</td>
+<td>BOM hiện được mô tả để tính định mức/in hồ sơ. Chưa có mô tả đầy đủ về cân đối tồn NVL, hàng mua đang về và đề xuất mua theo thời điểm cần.</td>
+</tr>
+<tr>
+<td>Phạm vi công sở trong hoạch định</td>
+<td>Thuật toán hoạch định nêu rõ hai kênh bán lẻ và trường; cần xác nhận công sở, may mẫu có tham gia chung hay chỉ phát LSX trực tiếp.</td>
+</tr>
+<tr>
+<td>Ưu tiên phân bổ và làm tròn</td>
+<td>HSKS yêu cầu danh sách PGH khi nhập kho sắp theo ngày cần hàng giảm dần, trong khi ý nghĩa ưu tiên ngày gần nhất cần được chốt rõ. Quy tắc làm tròn theo hệ số chưa nêu trường hợp đúng 0,5 và xử lý phần chênh để tổng phân bổ bằng tổng nhập.</td>
+</tr>
+<tr>
+<td>Tính nhất quán của tài liệu</td>
+<td>HDSD 2025 có nội dung duyệt công sở ghi nhầm bán lẻ; tài liệu duyệt 2026 có tiêu đề/ ví dụ đề nghị chi tiền, tạm ứng lương dù phần thao tác chọn PGH công sở. Cần chuẩn hóa trước khi dùng làm tiêu chí nghiệm thu.</td>
+</tr>
+</tbody></table>
+<p><strong>Kết luận:</strong> Theo tài liệu, FBO có nền tảng hoạch định số lượng thành phẩm từ nhu cầu, tồn kho và nguồn đáp ứng đang thực hiện. Báo giá tập trung hoàn thiện dữ liệu, chứng từ, điều chuyển kho và quyền truy cập. Các yêu cầu lập lịch theo năng lực, đảm bảo ngày giao và hoạch định NVL cần được xác nhận thành phạm vi riêng nếu Phương Thảo mong muốn.</p>
+<h2>Nguồn đối chiếu</h2>
+<ol>
+<li><code>HSKS.2025.PHUONGTHAO_Final.docx</code>: Kế hoạch năm; Phiếu gọi hàng; Điều chuyển; Phiếu nhập kho; Lệnh sản xuất; Hoạch định thành phẩm; Báo cáo.</li>
+<li><code>HDSD.2025.PHUONGTHAO.docx</code>: Mục 1–3 và 10–14, cùng phần phiếu gọi hàng và duyệt.</li>
+<li><code>Báo giá bổ sung tính năng phần mềm Fast Business Online_Công ty Đồng Phục Phương Thảo_QLSX.doc</code>: Báo giá 10/03/2026, hạng mục 1–4.</li>
+<li><code>HDSD.2026. Khai báo luồng duyệt PGH công sở.docx</code>: Danh mục kiểu duyệt; Khai báo kiểu duyệt; Quyền duyệt; Người duyệt.</li>
+</ol>
+</body></html>
