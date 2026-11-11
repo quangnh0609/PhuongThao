@@ -1,0 +1,25 @@
+Đầu năm
+1. Kê hoạch gọi hàng năm
+2. Kế hoạch sản xuất: Sử dụng số liệu kế hoạch gọi hàng, trừ số liệu tồn kho ==> Số liệu kế hoạch sản xuất
+--> Tạo lệnh sản xuẩt
+Trong năm
+3. Phiếu gọi hàng (3 loại, trong đó có 2 loại kế thừa từ Kế hoạch gọi hàng năm)
+	3 nguồn cung cấp cho phiếu gọi hàng
+	- Tồn kho
+	- Lệnh sản xuất đang có: Chỉ tính phần dở dang
+	- Tạo lệnh sản xuất mới
+4. Phiếu hoạch định
+- Mục đích: để phân bổ hàng cho phiếu gọi hàng
+- Output:
+	+ Phiếu gọi hàng nào
+	+ Mặt hàng
+	+ Được cung cấp bởi cái gì, số lượng tương ứng là bao nhiêu
+5. Phiếu xuất điều chuyển
+- Kế thừa từ phiếu gọi hàng => Tính số lượng đã giao cho phiếu gọi hàng đó
+
+
+Cấu trúc kho tổng
+- Kho tổng chung: Dùng để giao hàng cho tất cả các kênh
+- Kho tổng bán lẻ: Dùng để giao hàng cho PGH kênh bán lẻ
+- Kho tổng trường: Dùng để giao hàng cho PGH kênh trường
+- Kho tổng công sở: Dùng để giao hàng cho PGH kênh công sở
